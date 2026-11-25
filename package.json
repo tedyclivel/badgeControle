@@ -1,0 +1,27 @@
+{
+  "name": "passage",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tedyclivel/badgeControle.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tedyclivel/badgeControle/issues"
+  },
+  "homepage": "https://github.com/tedyclivel/badgeControle#readme",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "supabase": "^3.4.0"
+  }
+}
