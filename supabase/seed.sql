@@ -126,3 +126,10 @@ set checkpoint_id = excluded.checkpoint_id,
     starts_at = excluded.starts_at,
     ends_at = excluded.ends_at,
     weekdays = excluded.weekdays;
+
+insert into public.exceptions_calendrier (id, ecole_id, eleve_id, jour, type, motif)
+values ('00000000-0000-4000-8000-000000000451', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000115', '2026-11-28', 'ABSENCE_JUSTIFIEE', 'Absence de démonstration')
+on conflict (id) do update
+set jour = excluded.jour,
+    type = excluded.type,
+    motif = excluded.motif;
