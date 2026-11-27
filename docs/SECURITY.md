@@ -1,6 +1,6 @@
 # Conception de la sécurité
 
-Statut : stratégie initiale, non auditée et non encore vérifiée par les tests métier. Source : sujet B, sections 2.2, 3.2 à 3.4 et 4.
+Statut : accès de lecture RLS initial implémenté et testé localement pour les profils, élèves, rattachements et points de contrôle ; les écritures métier et les autres ressources restent à sécuriser. Source : sujet B, sections 2.2, 3.2 à 3.4 et 4.
 
 ## Menaces et mesures prévues
 
@@ -34,7 +34,7 @@ Le backend déduit l’identité du contexte d’authentification vérifié, jam
 | Agent | Appareils autorisés, point de contrôle, preuve minimale et synchronisation | Informations parentales, anomalies, statistiques et historiques généraux |
 | Parent | Données minimales, passages et anomalies des enfants liés | Tout autre enfant, clés de badges, preuves techniques et administration |
 
-Activer RLS sur les tables exposées, contrôler les GRANT et utiliser des vues/projections ou des endpoints pour restreindre les colonnes (RLS seule ne le fait pas). La cohérence d’établissement est renforcée par les clés étrangères composites. Toute utilisation d’un client privilégié dans une Edge Function exige des contrôles explicites avant l’accès ; une clé privilégiée contourne RLS et ne doit jamais être livrée au navigateur. Les fonctions SQL privilégiées éventuelles sont restreintes et possèdent un `search_path` maîtrisé.
+RLS est actif sur les tables actuellement créées. Les droits des rôles `anon` et `authenticated` sont révoqués, puis `authenticated` reçoit uniquement les droits de lecture nécessaires. Les politiques garantissent qu’un parent lit ses enfants et ses rattachements seulement, qu’un agent ne lit pas les élèves et qu’un responsable est borné à son établissement. Les écritures restent bloquées jusqu’aux RPC dédiées. La cohérence d’établissement est renforcée par les clés étrangères composites. Toute utilisation d’un client privilégié dans une Edge Function exige des contrôles explicites avant l’accès ; une clé privilégiée contourne RLS et ne doit jamais être livrée au navigateur. Les fonctions SQL privilégiées éventuelles sont restreintes et possèdent un `search_path` maîtrisé.
 
 ## Badge : garantie et limites
 
