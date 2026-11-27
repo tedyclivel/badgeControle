@@ -1,6 +1,6 @@
 # Passage — Conception de la base de données
 
-Statut : conception initiale J2, à implémenter et tester. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
+Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql`, parcours initiaux dans `20261127123000_create_routes_schema.sql` et données fictives dans `supabase/seed.sql` ; les tables métier restantes et les politiques RLS détaillées restent à implémenter et tester. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
 
 ## 1. Choix de conception
 
