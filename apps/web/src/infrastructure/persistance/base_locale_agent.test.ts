@@ -9,6 +9,16 @@ const passage = {
   identifiantAppareil: 'appareil-opaque',
   identifiantPointControle: 'point-opaque',
   heureLocale: '2026-11-27T08:01:00.000Z',
+  donneesSignees: {
+    version: 1 as const,
+    identifiantCodeQr: 'code-opaque',
+    identifiantBadge: 'badge-opaque',
+    identifiantEcole: 'ecole-opaque',
+    numeroSequence: 1,
+    valableDepuis: '2026-11-27T08:00:00.000Z',
+    valableJusqua: '2026-11-27T08:05:00.000Z',
+  },
+  signatureBase64: 'signature-de-test',
 }
 
 afterEach(async () => {

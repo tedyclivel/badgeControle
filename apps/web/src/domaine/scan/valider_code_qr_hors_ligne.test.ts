@@ -8,6 +8,7 @@ import { validerCodeQrHorsLigne } from './valider_code_qr_hors_ligne.ts'
 import type {
   DepotLocalAgent,
   PassageLocal,
+  PassageLocalVerifie,
   ResultatValidationLocale,
 } from './types.ts'
 
@@ -32,7 +33,7 @@ class DepotMemoire implements DepotLocalAgent {
     return this.badgesRevoques.has(identifiantBadge)
   }
 
-  async consommerCodeEtEnregistrerPassage(passage: PassageLocal): Promise<ResultatValidationLocale> {
+  async consommerCodeEtEnregistrerPassage(passage: PassageLocalVerifie): Promise<ResultatValidationLocale> {
     if (this.codesConsommes.has(passage.identifiantCodeQr)) {
       return { accepte: false, motif: 'CODE_QR_DEJA_CONSOMME' }
     }

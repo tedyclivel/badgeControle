@@ -14,7 +14,12 @@ export interface PassageLocal {
   readonly heureLocale: string
 }
 
-export interface EvenementPassageEnAttente extends PassageLocal {
+export interface PassageLocalVerifie extends PassageLocal {
+  readonly donneesSignees: DonneesCodeQr
+  readonly signatureBase64: string
+}
+
+export interface EvenementPassageEnAttente extends PassageLocalVerifie {
   readonly identifiantEvenementLocal: string
   readonly creeLe: string
   readonly etatSynchronisation: 'EN_ATTENTE'
@@ -37,5 +42,5 @@ export type ResultatValidationLocale =
 export interface DepotLocalAgent {
   obtenirClePublique(identifiantEcole: string): Promise<JsonWebKey | undefined>
   badgeEstRevoque(identifiantBadge: string): Promise<boolean>
-  consommerCodeEtEnregistrerPassage(passage: PassageLocal): Promise<ResultatValidationLocale>
+  consommerCodeEtEnregistrerPassage(passage: PassageLocalVerifie): Promise<ResultatValidationLocale>
 }
