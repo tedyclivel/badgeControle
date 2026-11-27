@@ -77,7 +77,16 @@ Pour valider la PWA, utiliser également le build de production et son serveur d
 
 ## Comptes de test
 
-Le seed devra créer un responsable, un agent et deux parents, ainsi que cinq élèves fictifs au minimum. Les identifiants et le mode d’obtention des mots de passe de démonstration seront ajoutés après vérification du script de peuplement. Aucun compte réel d’élève ou secret de production ne sera publié.
+Après `npx supabase db reset`, le seed crée exclusivement des données fictives : un responsable, un agent, deux parents et cinq élèves. Le mot de passe de démonstration est `Passage2026!` pour tous les comptes.
+
+| Rôle | Adresse e-mail |
+|---|---|
+| Responsable | `responsable@demo.passage.test` |
+| Agent | `agent@demo.passage.test` |
+| Parent de deux élèves | `parent.a@demo.passage.test` |
+| Parent de trois élèves | `parent.b@demo.passage.test` |
+
+Ces comptes et ce mot de passe sont réservés à Supabase local. Aucun compte réel d’élève ni secret de production n’est versionné.
 
 ## Tests et intégration continue
 
