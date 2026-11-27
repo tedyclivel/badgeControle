@@ -1,6 +1,6 @@
 # Passage — Conception de la base de données
 
-Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql` ; les tables métier, les politiques RLS détaillées et le seed restent à implémenter et tester. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
+Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql` et parcours initiaux dans `20261127123000_create_routes_schema.sql` ; les tables métier restantes, les politiques RLS détaillées et le seed restent à implémenter et tester. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
 
 ## 1. Choix de conception
 
