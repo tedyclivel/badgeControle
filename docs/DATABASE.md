@@ -1,6 +1,6 @@
 # Passage — Conception de la base de données
 
-Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql`, parcours initiaux dans `20261127123000_create_routes_schema.sql`, invariants du socle dans `20261127124000_renforcer_integrite_noyau.sql` et données fictives dans `supabase/seed.sql`. Les tables métier et les politiques RLS détaillées restent dans leurs branches dédiées. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
+Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql`, parcours initiaux dans `20261127123000_create_routes_schema.sql`, invariants du socle dans `20261127124000_renforcer_integrite_noyau.sql` et structures métier dans `20261127125000_create_business_schema.sql`. Les RPC, déclencheurs métier et politiques RLS détaillées restent dans leurs branches dédiées. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
 
 ## 1. Choix de conception
 
