@@ -1,6 +1,6 @@
 # Conception de la sécurité
 
-Statut : accès de lecture RLS initial implémenté et testé localement pour les profils, élèves, rattachements et points de contrôle ; les écritures métier et les autres ressources restent à sécuriser. Source : sujet B, sections 2.2, 3.2 à 3.4 et 4.
+Statut : accès de lecture RLS implémenté et testé localement pour le noyau et les ressources métier. Les écritures métier restent réservées aux RPC et Edge Functions dédiées. Source : sujet B, sections 2.2, 3.2 à 3.4 et 4.
 
 ## Menaces et mesures prévues
 
