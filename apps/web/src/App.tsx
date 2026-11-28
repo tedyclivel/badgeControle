@@ -1,7 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+const Responsable = lazy(() => import('./features/responsable/TableauDeBord'))
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const cle = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -42,11 +43,7 @@ async function chargerEspace(db: SupabaseClient, id: string) {
   if (error || !profil) throw new Error('Profil inaccessible')
   switch (profil.role) {
     case 'MANAGER': {
-      const { count, error } = await db.from('anomalies').select('id', { count: 'exact', head: true })
-        .eq('school_id', profil.school_id).eq('status', 'OPEN')
-      if (error) throw error
-      return { chemin: '/responsable', titre: 'Espace responsable', nom: profil.full_name,
-        rubrique: 'Anomalies ouvertes', lignes: [String(count ?? 0)], vide: '' }
+      return { chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
     }
     case 'AGENT': {
       const { data, error } = await db.from('devices').select('label').eq('agent_id', id)
@@ -77,9 +74,13 @@ function Espace({ db, id }: { db: SupabaseClient; id: string }) {
       .catch(() => { if (actif) setErreur('Impossible de charger votre espace.') })
     return () => { actif = false }
   }, [db, id, essai])
+  if (espace && 'ecole' in espace && espace.ecole) return <Routes>
+    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom}/></Suspense>}/>
+    <Route path="*" element={<Navigate to="/responsable" replace/>}/>
+  </Routes>
   return <section>
     {erreur && <p role="alert">{erreur}</p>}
-    {espace ? <Routes>
+    {espace && espace.lignes ? <Routes>
       <Route path={espace.chemin} element={<>
         <p>{espace.nom}</p><h1>{espace.titre}</h1><h2>{espace.rubrique}</h2>
         {espace.lignes.length ? <ul>{espace.lignes.map((ligne, i) => <li key={i}>{ligne}</li>)}</ul> : <p>{espace.vide}</p>}
