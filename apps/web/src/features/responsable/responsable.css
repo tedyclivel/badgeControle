@@ -92,6 +92,10 @@ main:has(.rd) {
   width: 135px;
   padding: 6px;
   border: 0;
+  transition: width 160ms ease;
+}
+.rd-tools label:focus-within input {
+  width: 240px;
 }
 .rd-tools input:focus-visible,
 .rd-filtres select:focus-visible {
@@ -373,6 +377,9 @@ main:has(.rd) {
   .rd nav .rd-tools input {
     width: 100%;
     min-width: 0;
+  }
+  .rd nav .rd-tools label:focus-within input {
+    width: 100%;
   }
   .rd nav .rd-tools button {
     padding-inline: 4px;
