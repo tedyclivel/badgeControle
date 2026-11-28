@@ -33,7 +33,6 @@ class DepotMemoire implements DepotLocalAgent {
     return this.badgesRevoques.has(identifiantBadge)
   }
 
-  async consommerCodeEtEnregistrerPassage(passage: PassageLocal): Promise<ResultatValidationLocale> {
   async consommerCodeEtEnregistrerPassage(passage: PassageLocalVerifie): Promise<ResultatValidationLocale> {
     if (this.codesConsommes.has(passage.identifiantCodeQr)) {
       return { accepte: false, motif: 'CODE_QR_DEJA_CONSOMME' }
@@ -59,6 +58,7 @@ const passage: PassageLocal = {
   identifiantAppareil: 'appareil-opaque',
   identifiantPointControle: 'point-opaque',
   heureLocale: '2026-11-27T08:01:00.000Z',
+  decalageHorlogeSecondes: 120,
 }
 
 const donnees: DonneesCodeQr = {

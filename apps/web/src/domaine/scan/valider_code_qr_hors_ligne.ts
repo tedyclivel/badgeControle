@@ -61,6 +61,5 @@ export async function validerCodeQrHorsLigne(
     return { accepte: false, motif: 'BADGE_REVOQUE' }
   }
 
-  return depot.consommerCodeEtEnregistrerPassage(passage)
   return depot.consommerCodeEtEnregistrerPassage({ ...passage, donneesSignees: donnees, signatureBase64: codeQr.signatureBase64 })
 }

@@ -106,15 +106,6 @@ Deno.serve(async (requete) => {
         || codeEnregistre.badge_id !== evenement.identifiantBadge
         || codeEnregistre.signature_base64 !== evenement.signatureBase64
         || JSON.stringify(codeEnregistre.signed_payload) !== JSON.stringify(evenement.donneesSignees)) {
-        .from('codes_qr_dynamiques')
-        .select('id, ecole_id, badge_id, donnees_signees, signature_base64')
-        .eq('id', evenement.identifiantCodeQr)
-        .maybeSingle();
-      if (erreurCode || !codeEnregistre
-        || codeEnregistre.ecole_id !== profil.school_id
-        || codeEnregistre.badge_id !== evenement.identifiantBadge
-        || codeEnregistre.signature_base64 !== evenement.signatureBase64
-        || JSON.stringify(codeEnregistre.donnees_signees) !== JSON.stringify(evenement.donneesSignees)) {
         resultats.push({ identifiantEvenementLocal: evenement.identifiantEvenementLocal, resultat: 'CODE_INCOHERENT' });
         continue;
       }
@@ -127,12 +118,6 @@ Deno.serve(async (requete) => {
         p_agent_id: donneesUtilisateur.user.id,
         p_local_time: evenement.heureLocale,
         p_clock_offset_seconds: evenement.decalageHorlogeSecondes ?? null,
-        p_identifiant_evenement_local: evenement.identifiantEvenementLocal,
-        p_identifiant_code_qr: evenement.identifiantCodeQr,
-        p_identifiant_appareil: evenement.identifiantAppareil,
-        p_identifiant_point_controle: evenement.identifiantPointControle,
-        p_identifiant_agent: donneesUtilisateur.user.id,
-        p_heure_locale: evenement.heureLocale,
       });
       resultats.push({
         identifiantEvenementLocal: evenement.identifiantEvenementLocal,
