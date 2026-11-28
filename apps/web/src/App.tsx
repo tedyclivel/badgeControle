@@ -45,11 +45,6 @@ async function chargerEspace(db: SupabaseClient, id: string) {
   switch (profil.role) {
     case 'MANAGER': {
       return { chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
-      const { count, error } = await db.from('anomalies').select('id', { count: 'exact', head: true })
-        .eq('school_id', profil.school_id).eq('status', 'OPEN')
-      if (error) throw error
-      return { role: profil.role, schoolId: profil.school_id, chemin: '/responsable', titre: 'Espace responsable', nom: profil.full_name,
-        rubrique: 'Anomalies ouvertes', lignes: [String(count ?? 0)], vide: '' }
     }
     case 'AGENT': {
       const { data, error } = await db.from('devices').select('label').eq('agent_id', id)
@@ -80,29 +75,18 @@ function Espace({ db, id }: { db: SupabaseClient; id: string }) {
       .catch(() => { if (actif) setErreur('Impossible de charger votre espace.') })
     return () => { actif = false }
   }, [db, id, essai])
-  if (espace && 'ecole' in espace && espace.ecole) return <Routes>
-    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom}/></Suspense>}/>
-    <Route path="*" element={<Navigate to="/responsable" replace/>}/>
+  if (erreur) return <section><p role="alert">{erreur}</p><button onClick={() => { setErreur(''); setEssai(essai + 1) }}>Réessayer</button></section>
+  if (!espace) return <p role="status">Chargement du profil…</p>
+  if ('ecole' in espace && typeof espace.ecole === 'string') return <Routes>
+    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom}/></Suspense>} />
+    <Route path="*" element={<Navigate to="/responsable" replace />} />
   </Routes>
-  return <section>
-    {erreur && <p role="alert">{erreur}</p>}
-    {espace && espace.lignes ? <Routes>
-      <Route path={espace.chemin} element={<>
-    {espace ? <Routes>
-      <Route path={espace.chemin} element={espace.role === 'AGENT'
-        ? <EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />
-        : <>
-        <p>{espace.nom}</p><h1>{espace.titre}</h1><h2>{espace.rubrique}</h2>
-        {espace.lignes.length ? <ul>{espace.lignes.map((ligne, i) => <li key={i}>{ligne}</li>)}</ul> : <p>{espace.vide}</p>}
-      </>} />
-      <Route path="*" element={<Navigate to={espace.chemin} replace />} />
-    </Routes> : erreur ? <button onClick={() => { setErreur(''); setEssai(essai + 1) }}>Réessayer</button> :
-      <p role="status">Chargement du profil…</p>}
-    <button className="secondaire" onClick={async () => {
-      const { error } = await db.auth.signOut({ scope: 'local' })
-      if (error) setErreur('Déconnexion impossible. Réessayez.')
-    }}>Se déconnecter</button>
-  </section>
+  return <Routes>
+    <Route path={espace.chemin} element={espace.role === 'AGENT'
+      ? <EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />
+      : <section><p>{espace.nom}</p><h1>{espace.titre}</h1><h2>{espace.rubrique}</h2>{espace.lignes.length ? <ul>{espace.lignes.map((ligne, i) => <li key={i}>{ligne}</li>)}</ul> : <p>{espace.vide}</p>}<button className="secondaire" onClick={() => void db.auth.signOut({ scope: 'local' })}>Se déconnecter</button></section>} />
+    <Route path="*" element={<Navigate to={espace.chemin} replace />} />
+  </Routes>
 }
 
 export default function App() {
