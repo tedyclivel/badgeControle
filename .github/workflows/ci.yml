@@ -62,7 +62,7 @@ jobs:
       - name: Start Supabase
         run: |
           for attempt in 1 2 3; do
-            npx supabase start && exit 0
+            npx supabase start -x studio,logflare,vector,imgproxy,realtime,storage-api,edge-runtime && exit 0
             npx supabase stop || true
             sleep $((attempt * 15))
           done
