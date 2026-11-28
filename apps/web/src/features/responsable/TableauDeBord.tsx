@@ -490,12 +490,6 @@ export default function ResponsableLayout({
     ouvrir("");
     chercher("");
   }
-  const initiales = nom
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((s) => s[0])
-    .join("");
   return (
     <div className="rd" id="accueil">
       <nav aria-label="Navigation Responsable">
@@ -546,7 +540,7 @@ export default function ResponsableLayout({
             aria-label="Profil"
             onClick={() => ouvrir(menu === "profil" ? "" : "profil")}
           >
-            <span className="rd-avatar">{initiales}</span>
+            <img className="rd-avatar rd-avatar-photo" src="/avatars/responsable.png" alt={`Profil de ${nom}`} />
             <ChevronDown size={13} />
           </button>
         </div>
@@ -615,7 +609,7 @@ export default function ResponsableLayout({
       </nav>
       <div className="rd-body">
         <div className="rd-greeting">
-          <span className="rd-avatar">{initiales}</span>
+          <img className="rd-avatar rd-avatar-photo rd-avatar-greeting" src="/avatars/responsable.png" alt="" />
           <div>
             <strong>Bonjour, {nom.trim().split(" ")[0]} !</strong>
             <p>Voici un aperçu de l’activité de votre établissement.</p>

@@ -17,7 +17,7 @@ main:has(.rd) {
   color: var(--ink);
   min-height: 100vh;
   font:
-    14px/1.45 "Inter Variable",
+    14px/1.55 "Inter Variable",
     Inter,
     sans-serif;
   background: linear-gradient(to bottom, var(--hero) 242px, #f0f2f5 242px);
@@ -45,8 +45,9 @@ main:has(.rd) {
   border-bottom: 1px solid #34404f;
 }
 .rd-logo {
-  font-size: 21px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
   gap: 9px;
 }
 .rd-logo svg {
@@ -122,6 +123,7 @@ main:has(.rd) {
   place-items: center;
   font-weight: 700;
 }
+.rd-avatar-photo { object-fit: cover; background: #d6e9d8; box-shadow: 0 0 0 2px rgba(255,255,255,.2); }
 .rd-pop,
 .rd-links.ouvert {
   position: absolute;
@@ -154,7 +156,9 @@ main:has(.rd) {
   font-size: 18px;
 }
 .rd-greeting strong {
-  font-size: 17px;
+  font-size: 18px;
+  font-weight: 720;
+  letter-spacing: -0.015em;
 }
 .rd-greeting p {
   color: #b7bfcc;
@@ -240,7 +244,9 @@ main:has(.rd) {
   grid-template-columns: repeat(3, 1fr);
 }
 .rd-card h2 {
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 720;
+  letter-spacing: -0.012em;
   margin: 0 0 18px;
 }
 .rd-card-head {
@@ -270,6 +276,7 @@ main:has(.rd) {
 .rd-card p {
   color: var(--muted);
 }
+.rd-card p, .rd-card td { font-size: 13px; }
 .rd-body > .rd-card {
   margin-bottom: var(--gap);
 }
@@ -334,7 +341,7 @@ main:has(.rd) {
   border-top: 1px solid var(--edge);
 }
 .rd-anomalies-card {
-  border-left: 3px solid #f59e0b;
+  border-left: 1px solid var(--edge);
 }
 .rd-tag {
   display: inline-flex;
@@ -356,12 +363,13 @@ main:has(.rd) {
   color: #9a5b00;
 }
 .rd-summary-card {
-  border-left: 3px solid var(--green);
-  background: linear-gradient(105deg, #fff 65%, #f0fdf4);
+  border-left: 1px solid var(--edge);
+  background: #fff;
 }
 .rd-summary-card > p {
   max-width: 72ch;
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.7;
   color: #3f5268;
 }
 .rd-summary-meta {
