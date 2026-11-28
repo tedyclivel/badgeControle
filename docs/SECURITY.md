@@ -1,6 +1,6 @@
 # Conception de la sécurité
 
-Statut : accès de lecture RLS initial, cycle de vie serveur des badges et consommation atomique des codes QR implémentés et testés localement ; la production et la vérification cryptographique des signatures restent à implémenter. Source : sujet B, sections 2.2, 3.2 à 3.4 et 4.
+Statut : accès de lecture RLS implémenté et testé localement pour le noyau et les ressources métier. Le cycle de vie serveur des badges et la consommation atomique des codes QR sont présents ; la production et la vérification cryptographique des signatures restent à implémenter. Source : sujet B, sections 2.2, 3.2 à 3.4 et 4.
 
 ## Menaces et mesures prévues
 
