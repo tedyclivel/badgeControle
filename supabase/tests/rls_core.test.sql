@@ -12,7 +12,7 @@ select is((select count(*) from public.students where id = '00000000-0000-4000-8
 select is((select count(*) from public.parent_students), 2::bigint, 'Le premier parent ne lit que ses propres rattachements');
 select is((select count(*) from public.passages), 0::bigint, 'Le parent ne lit pas les preuves de passage brutes');
 select is((select count(*) from public.parent_passages), 2::bigint, 'Le parent lit les passages réduits de ses enfants');
-select is((select count(*) from public.parent_anomalies), 2::bigint, 'Le parent lit les anomalies de ses enfants');
+select is((select count(*) from public.parent_anomalies), 3::bigint, 'Le parent lit les anomalies de ses enfants');
 
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000012', true);
 select is((select count(*) from public.students), 0::bigint, 'L agent ne lit aucun élève');
