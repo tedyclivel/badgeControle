@@ -1,30 +1,30 @@
 import type { DonneesCodeQr } from '../../../../../supabase/functions/partage/cryptographie_qr.ts'
 
 export interface CodeQrSigne {
-  readonly donnees: DonneesCodeQr
-  readonly signatureBase64: string
+  readonly donnees: DonneesCodeQr;
+  readonly signatureBase64: string;
 }
 
 export interface PassageLocal {
-  readonly identifiantCodeQr: string
-  readonly identifiantBadge: string
-  readonly identifiantEcole: string
-  readonly identifiantAppareil: string
-  readonly identifiantPointControle: string
-  readonly heureLocale: string
+  readonly identifiantCodeQr: string;
+  readonly identifiantBadge: string;
+  readonly identifiantEcole: string;
+  readonly identifiantAppareil: string;
+  readonly identifiantPointControle: string;
+  readonly heureLocale: string;
   /** Écart estimé entre l'horloge de l'appareil et la référence serveur. */
-  readonly decalageHorlogeSecondes: number | null
+  readonly decalageHorlogeSecondes: number | null;
 }
 
 export interface PassageLocalVerifie extends PassageLocal {
-  readonly donneesSignees: DonneesCodeQr
-  readonly signatureBase64: string
+  readonly donneesSignees: DonneesCodeQr;
+  readonly signatureBase64: string;
 }
 
 export interface EvenementPassageEnAttente extends PassageLocalVerifie {
-  readonly identifiantEvenementLocal: string
-  readonly creeLe: string
-  readonly etatSynchronisation: 'EN_ATTENTE'
+  readonly identifiantEvenementLocal: string;
+  readonly creeLe: string;
+  readonly etatSynchronisation: 'EN_ATTENTE';
 }
 
 export type MotifRefusLocal =
