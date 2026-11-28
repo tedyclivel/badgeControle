@@ -14,6 +14,14 @@ export interface PassageLocal {
   readonly heureLocale: string;
   /** Écart estimé entre l'horloge de l'appareil et la référence serveur. */
   readonly decalageHorlogeSecondes: number | null;
+  readonly identifiantCodeQr: string
+  readonly identifiantBadge: string
+  readonly identifiantEcole: string
+  readonly identifiantAppareil: string
+  readonly identifiantPointControle: string
+  readonly heureLocale: string
+  /** Écart estimé entre l'horloge de l'appareil et la référence serveur. */
+  readonly decalageHorlogeSecondes: number | null
 }
 
 export interface PassageLocalVerifie extends PassageLocal {
