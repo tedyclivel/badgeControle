@@ -7,7 +7,9 @@ import './App.css'
 const Responsable = lazy(() => import('./features/responsable/TableauDeBord'))
 const Parent = lazy(() => import('./features/parent/EspaceParent'))
 
-const url = import.meta.env.VITE_SUPABASE_URL
+// En développement, les routes Supabase sont relayées par Vite : cela permet
+// un test HTTPS depuis un téléphone via un tunnel sans exposer l'API locale.
+const url = import.meta.env.DEV ? window.location.origin : import.meta.env.VITE_SUPABASE_URL
 const cle = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 const client = url && cle && !cle.startsWith('replace-') ? createClient(url, cle) : null
 
