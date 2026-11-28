@@ -33,6 +33,7 @@
             "npm:@vitejs/plugin-react@^6.1.2",
             "npm:dexie-react-hooks@^4.4.0",
             "npm:dexie@^4.4.7",
+            "npm:fake-indexeddb@^6.2.8",
             "npm:oxlint@^1.90.0",
             "npm:react-dom@^19.3.1",
             "npm:react-router-dom@^7.18.7",
