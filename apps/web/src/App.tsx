@@ -15,7 +15,6 @@ type Espace =
   | { readonly role: 'MANAGER'; readonly chemin: '/responsable'; readonly ecole: string; readonly nom: string }
   | { readonly role: 'AGENT'; readonly chemin: '/agent'; readonly schoolId: string; readonly nom: string }
   | { readonly role: 'PARENT'; readonly chemin: '/parent'; readonly nom: string }
-  | { readonly role: 'PARENT'; readonly chemin: '/parent'; readonly nom: string; readonly enfants: readonly string[] }
 
 function Connexion({ db }: { readonly db: SupabaseClient }) {
   const [erreur, setErreur] = useState('')
@@ -54,22 +53,10 @@ async function chargerEspace(db: SupabaseClient, id: string): Promise<Espace> {
   if (profil.role === 'AGENT') return { role: 'AGENT', chemin: '/agent', schoolId: String(profil.school_id), nom: String(profil.full_name) }
   if (profil.role === 'PARENT') return { role: 'PARENT', chemin: '/parent', nom: String(profil.full_name) }
   throw new Error('Rôle inconnu')
-  switch (profil.role) {
-    case 'MANAGER': return { role: profil.role, chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
-    case 'AGENT': return { role: profil.role, schoolId: String(profil.school_id), chemin: '/agent', nom: String(profil.full_name) } as const
-    case 'PARENT': {
-      const { data, error: erreurEnfants } = await db.from('students').select('full_name').eq('school_id', profil.school_id).eq('active', true).order('full_name')
-      if (erreurEnfants) throw erreurEnfants
-      return { role: profil.role, chemin: '/parent', nom: String(profil.full_name), enfants: data.map((eleve) => String(eleve.full_name)) } as const
-    }
-    default: throw new Error('Rôle inconnu')
-  }
 }
 
 function EspaceConnecte({ db, id }: { readonly db: SupabaseClient; readonly id: string }) {
   const [espace, setEspace] = useState<Espace | null>(null)
-function Espace({ db, id }: { readonly db: SupabaseClient; readonly id: string }) {
-  const [espace, setEspace] = useState<Awaited<ReturnType<typeof chargerEspace>> | null>(null)
   const [erreur, setErreur] = useState('')
   const [essai, setEssai] = useState(0)
   const deconnecter = () => void db.auth.signOut({ scope: 'local' })
@@ -92,19 +79,6 @@ function Espace({ db, id }: { readonly db: SupabaseClient; readonly id: string }
   return <Routes>
     <Route path="/parent" element={<Suspense fallback={<p>Chargement…</p>}><Parent db={db} nom={espace.nom} deconnecter={deconnecter} /></Suspense>} />
     <Route path="*" element={<Navigate to="/parent" replace />} />
-  if (erreur) return <section><p role="alert">{erreur}</p><button onClick={() => { setErreur(''); setEssai(essai + 1) }}>Réessayer</button></section>
-  if (!espace) return <p role="status">Chargement du profil…</p>
-  if (espace.role === 'MANAGER') return <Routes>
-    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom} /></Suspense>} />
-    <Route path="*" element={<Navigate to="/responsable" replace />} />
-  </Routes>
-  if (espace.role === 'AGENT') return <Routes>
-    <Route path="/agent" element={<EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />} />
-    <Route path="*" element={<Navigate to="/agent" replace />} />
-  </Routes>
-  return <Routes>
-    <Route path="/parent" element={<section><p>{espace.nom}</p><h1>Espace parent</h1><h2>Mes enfants</h2>{espace.enfants.length ? <ul>{espace.enfants.map((enfant) => <li key={enfant}>{enfant}</li>)}</ul> : <p>Aucun enfant actif rattaché au compte.</p>}<button className="secondaire" onClick={() => void db.auth.signOut({ scope: 'local' })}>Se déconnecter</button></section>} />
-    <Route path="*" element={<Navigate to="/parent" replace />} />
   </Routes>
 }
 
@@ -120,7 +94,6 @@ export default function App() {
     <main>{!client ? <section><h1>Connexion à configurer</h1><p>Renseignez l’URL Supabase et la clé publique dans la configuration web.</p></section>
       : id === undefined ? <p role="status">Ouverture de la session…</p>
         : id ? <EspaceConnecte key={id} db={client} id={id} />
-        : id ? <Espace key={id} db={client} id={id} />
           : <Routes><Route path="/connexion" element={<Connexion db={client} />} /><Route path="*" element={<Navigate to="/connexion" replace />} /></Routes>}</main>
   </BrowserRouter>
 }
