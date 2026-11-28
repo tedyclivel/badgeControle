@@ -8,6 +8,11 @@ import {
 
 const dureeCodeQrMillisecondes = 5 * 60 * 1000;
 const quantiteMaximum = 288;
+const etatsQr = new Map([
+  ['PREPARED', 'PREPARE'],
+  ['CONSUMED', 'CONSOMME'],
+  ['CANCELLED', 'ANNULE'],
+]);
 const entetesCors = {
   'access-control-allow-headers': 'authorization, content-type',
   'access-control-allow-methods': 'POST, OPTIONS',
@@ -70,10 +75,13 @@ Deno.serve(async (requete) => {
 
     const { data: badge, error: erreurBadge } = await clientServeur
       .from('badges')
-      .select('id, ecole_id, etat')
+      .select('id, school_id')
       .eq('id', demande.identifiantBadge)
+      .eq('school_id', profil.school_id)
+      .eq('status', 'ACTIVE')
       .maybeSingle();
-    if (erreurBadge || !badge || badge.ecole_id !== profil.school_id || badge.etat !== 'ACTIF') {
+    if (erreurBadge) throw erreurBadge;
+    if (!badge) {
       return reponseJson({ erreur: 'Badge actif introuvable dans votre établissement' }, 404);
     }
 
@@ -87,7 +95,7 @@ Deno.serve(async (requete) => {
         version: 1,
         identifiantCodeQr: crypto.randomUUID(),
         identifiantBadge: badge.id,
-        identifiantEcole: badge.ecole_id,
+        identifiantEcole: badge.school_id,
         numeroSequence: Math.floor(debut.getTime() / dureeCodeQrMillisecondes),
         valableDepuis: debut.toISOString(),
         valableJusqua: fin.toISOString(),
@@ -95,34 +103,37 @@ Deno.serve(async (requete) => {
 
       return {
         id: donnees.identifiantCodeQr,
-        ecole_id: badge.ecole_id,
+        school_id: badge.school_id,
         badge_id: badge.id,
-        numero_sequence: donnees.numeroSequence,
-        donnees_signees: donnees,
+        sequence_number: donnees.numeroSequence,
+        signed_payload: donnees,
         signature_base64: await signerDonneesCodeQr(donnees, clePrivee),
-        valable_depuis: donnees.valableDepuis,
-        valable_jusqu_a: donnees.valableJusqua,
+        valid_from: donnees.valableDepuis,
+        valid_until: donnees.valableJusqua,
       };
     }));
 
     const { error: erreurInsertion } = await clientServeur
-      .from('codes_qr_dynamiques')
-      .upsert(codes, { onConflict: 'badge_id,numero_sequence', ignoreDuplicates: true });
+      .from('qr_codes')
+      .upsert(codes, { onConflict: 'badge_id,sequence_number', ignoreDuplicates: true });
     if (erreurInsertion) throw erreurInsertion;
 
-    const numerosSequences = codes.map((code) => code.numero_sequence);
+    const numerosSequences = codes.map((code) => code.sequence_number);
     const { data: codesEnregistres, error: erreurLecture } = await clientServeur
-      .from('codes_qr_dynamiques')
-      .select('id, donnees_signees, signature_base64, valable_depuis, valable_jusqu_a, etat')
+      .from('qr_codes')
+      .select('id, donnees_signees:signed_payload, signature_base64, valable_depuis:valid_from, valable_jusqu_a:valid_until, status')
       .eq('badge_id', badge.id)
-      .in('numero_sequence', numerosSequences)
-      .order('numero_sequence');
+      .in('sequence_number', numerosSequences)
+      .order('sequence_number');
     if (erreurLecture) throw erreurLecture;
 
     return reponseJson({
       algorithme: 'ECDSA P-256 SHA-256',
       clePublique: extraireClePublique(clePriveeJwk),
-      codes: codesEnregistres,
+      codes: codesEnregistres.map(({ status, ...code }) => ({
+        ...code,
+        etat: etatsQr.get(status),
+      })),
     });
   } catch (erreur) {
     console.error('Erreur de génération des codes QR', erreur);
