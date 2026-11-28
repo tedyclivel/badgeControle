@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { BaseLocaleAgent } from '../../infrastructure/persistance/base_locale_agent.ts'
 import { validerCodeQrHorsLigne } from '../../domaine/scan/valider_code_qr_hors_ligne.ts'
 import type { CodeQrSigne, ResultatValidationLocale } from '../../domaine/scan/types.ts'
+import { synchroniserPassagesEnAttente } from './application/synchroniser_passages.ts'
+import { PasserelleSynchronisationSupabase } from './infrastructure/passerelle_synchronisation_supabase.ts'
 
 interface Terminal { readonly id: string; readonly label: string }
 interface PointDeControle { readonly id: string; readonly label: string; readonly type: string }
@@ -42,6 +44,8 @@ export function EcranAgent({ db, agent, deconnecter }: {
   readonly deconnecter: () => void
 }) {
   const baseLocale = useMemo(() => new BaseLocaleAgent(), [])
+  const passerelleSynchronisation = useMemo(() => new PasserelleSynchronisationSupabase(db), [db])
+  const synchronisationEnCours = useRef(false)
   const [terminaux, setTerminaux] = useState<Terminal[]>([])
   const [points, setPoints] = useState<PointDeControle[]>([])
   const [terminalId, setTerminalId] = useState('')
@@ -52,10 +56,29 @@ export function EcranAgent({ db, agent, deconnecter }: {
   const [enAttente, setEnAttente] = useState(0)
   const [message, setMessage] = useState('')
   const [erreur, setErreur] = useState('')
+  const [synchronisation, setSynchronisation] = useState<'IDLE' | 'EN_COURS'>('IDLE')
 
   const actualiserFile = useCallback(async () => {
     setEnAttente(await baseLocale.passagesEnAttente.count())
   }, [baseLocale])
+
+  const synchroniser = useCallback(async () => {
+    if (!navigator.onLine || synchronisationEnCours.current) return
+    synchronisationEnCours.current = true
+    setSynchronisation('EN_COURS')
+    try {
+      const bilan = await synchroniserPassagesEnAttente(baseLocale, passerelleSynchronisation)
+      if (bilan.confirmes) setMessage(`${bilan.confirmes} passage${bilan.confirmes > 1 ? 's' : ''} synchronisé${bilan.confirmes > 1 ? 's' : ''}.`)
+      if (bilan.rejetes) setErreur(`${bilan.rejetes} passage${bilan.rejetes > 1 ? 's' : ''} a été refusé par le serveur.`)
+    } catch {
+      // Le passage reste dans IndexedDB : il sera renvoyé lors de la prochaine connexion.
+      setErreur('Synchronisation reportée : les passages restent conservés sur ce terminal.')
+    } finally {
+      synchronisationEnCours.current = false
+      setSynchronisation('IDLE')
+      await actualiserFile()
+    }
+  }, [actualiserFile, baseLocale, passerelleSynchronisation])
 
   useEffect(() => {
     let actif = true
@@ -73,9 +96,13 @@ export function EcranAgent({ db, agent, deconnecter }: {
         setPointId(pointsControle.data[0]?.id ?? '')
       }
       await actualiserFile()
+      void synchroniser()
     }
     void charger()
-    const enConnexion = () => setEnLigne(true)
+    const enConnexion = () => {
+      setEnLigne(true)
+      void synchroniser()
+    }
     const horsConnexion = () => setEnLigne(false)
     window.addEventListener('online', enConnexion)
     window.addEventListener('offline', horsConnexion)
@@ -84,7 +111,7 @@ export function EcranAgent({ db, agent, deconnecter }: {
       window.removeEventListener('online', enConnexion)
       window.removeEventListener('offline', horsConnexion)
     }
-  }, [actualiserFile, agent.id, agent.school_id, db])
+  }, [actualiserFile, agent.id, agent.school_id, db, synchroniser])
 
   async function preparerTerminal(evenement: FormEvent<HTMLFormElement>) {
     evenement.preventDefault()
@@ -122,6 +149,7 @@ export function EcranAgent({ db, agent, deconnecter }: {
       setMessage(messageResultat(resultat))
       if (resultat.accepte) setContenuQr('')
       await actualiserFile()
+      if (resultat.accepte) void synchroniser()
     } catch {
       setErreur('Le contenu présenté ne contient pas un QR valide.')
     }
@@ -149,6 +177,15 @@ export function EcranAgent({ db, agent, deconnecter }: {
       <textarea id="qr" value={contenuQr} onChange={(e) => setContenuQr(e.target.value)} placeholder="Scannez ou collez le QR signé" required />
       <button>Contrôler le passage</button>
     </form>
+
+    <button
+      type="button"
+      className="secondaire"
+      onClick={() => void synchroniser()}
+      disabled={!enLigne || synchronisation === 'EN_COURS' || enAttente === 0}
+    >
+      {synchronisation === 'EN_COURS' ? 'Synchronisation…' : 'Synchroniser les passages'}
+    </button>
 
     <details>
       <summary>Préparer le terminal pour le mode hors ligne</summary>
