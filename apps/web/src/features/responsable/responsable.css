@@ -34,6 +34,73 @@ main:has(.rd) {
   display: flex;
   align-items: center;
 }
+.rd-qr-action {
+  position: absolute;
+  right: 0;
+  top: 92px;
+}
+.rd-qr-open,
+.rd-qr-generate,
+.rd-qr-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font: inherit;
+}
+.rd-qr-open {
+  padding: 7px 10px;
+  color: #d8f7e4;
+  background: rgba(46, 204, 113, .16);
+}
+.rd-qr-open:hover { background: rgba(46, 204, 113, .27); }
+.rd-qr-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, .58);
+}
+.rd-qr-modal {
+  width: min(100%, 620px);
+  padding: 22px;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+}
+.rd-qr-modal > header,
+.rd-qr-modal > header > div,
+.rd-qr-result,
+.rd-qr-modal header span,
+.rd-qr-download {
+  display: flex;
+  align-items: center;
+}
+.rd-qr-modal > header { justify-content: space-between; margin-bottom: 20px; }
+.rd-qr-modal > header > div { gap: 10px; }
+.rd-qr-modal header span { justify-content: center; width: 35px; height: 35px; color: #168a4b; background: #edf9f1; border-radius: 5px; }
+.rd-qr-modal h2 { margin: 0; font-size: 17px; }
+.rd-qr-modal header p { margin: 1px 0 0; font-size: 12px; color: var(--muted); }
+.rd-qr-modal header > button { border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.rd-qr-select { display: grid; gap: 6px; font-weight: 650; font-size: 13px; }
+.rd-qr-select select { min-height: 40px; padding: 8px; border: 1px solid var(--edge); border-radius: 5px; color: var(--ink); background: white; font: inherit; }
+.rd-qr-generate { margin-top: 13px; padding: 9px 12px; color: #12241a; background: var(--green); font-weight: 700; }
+.rd-qr-generate:disabled { cursor: not-allowed; opacity: .55; }
+.rd-qr-error { margin: 12px 0 0; color: #c2410c !important; font-size: 13px; }
+.rd-qr-result { gap: 22px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--edge); }
+.rd-qr-image { flex: 0 0 auto; padding: 8px; border: 1px solid var(--edge); border-radius: 5px; line-height: 0; }
+.rd-qr-result > div:last-child { display: grid; gap: 3px; }
+.rd-qr-result strong { font-size: 16px; }
+.rd-qr-result span, .rd-qr-result small { color: var(--muted); }
+.rd-qr-result p { margin: 7px 0 3px; }
+.rd-qr-download { width: fit-content; margin-top: 8px; padding: 6px 0; color: #168a4b; background: transparent; font-weight: 650; }
+.rd-spin { animation: rd-spin .8s linear infinite; }
+@keyframes rd-spin { to { transform: rotate(360deg); } }
 .rd nav {
   position: relative;
   z-index: 2;
