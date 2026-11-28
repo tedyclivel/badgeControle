@@ -9,6 +9,7 @@ const passage = {
   identifiantAppareil: 'appareil-opaque',
   identifiantPointControle: 'point-opaque',
   heureLocale: '2026-11-27T08:01:00.000Z',
+  decalageHorlogeSecondes: 120,
   donneesSignees: {
     version: 1 as const,
     identifiantCodeQr: 'code-opaque',
@@ -39,6 +40,7 @@ describe('BaseLocaleAgent', () => {
     expect(resultat.accepte).toBe(true)
     expect(passages).toHaveLength(1)
     expect(passages[0]?.identifiantCodeQr).toBe(passage.identifiantCodeQr)
+    expect(passages[0]?.decalageHorlogeSecondes).toBe(120)
     expect(tentatives).toHaveLength(1)
     expect(tentatives[0]?.resultat).toBe('ACCEPTE')
   })
