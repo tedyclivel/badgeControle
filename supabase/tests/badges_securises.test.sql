@@ -15,6 +15,7 @@ select lives_ok(
   'Le responsable peut émettre un badge'
 );
 select is(
+  (select count(*) from public.badges where student_id = '00000000-0000-4000-8000-000000000111' and status = 'ACTIVE'),
   (select count(*) from public.badges where eleve_id = '00000000-0000-4000-8000-000000000111' and etat = 'ACTIF'),
   1::bigint,
   'Un élève ne possède qu un badge actif'
@@ -29,11 +30,14 @@ select lives_ok(
   'La réémission du badge réussit'
 );
 select is(
+  (select count(*) from public.badges where student_id = '00000000-0000-4000-8000-000000000111' and status = 'ACTIVE'),
   (select count(*) from public.badges where eleve_id = '00000000-0000-4000-8000-000000000111' and etat = 'ACTIF'),
   1::bigint,
   'La réémission conserve un seul badge actif'
 );
 select is(
+  (select count(*) from public.badges where student_id = '00000000-0000-4000-8000-000000000111' and status = 'REVOKED'),
+  2::bigint,
   (select count(*) from public.badges where eleve_id = '00000000-0000-4000-8000-000000000111' and etat = 'REVOQUE'),
   1::bigint,
   'La réémission révoque immédiatement le badge précédent'
