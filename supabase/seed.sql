@@ -17,6 +17,15 @@ set email = excluded.email,
     raw_app_meta_data = excluded.raw_app_meta_data,
     updated_at = now();
 
+-- GoTrue attend des chaînes pour les jetons inutilisés des comptes de démo.
+update auth.users set
+  confirmation_token = coalesce(confirmation_token, ''),
+  recovery_token = coalesce(recovery_token, ''),
+  email_change = coalesce(email_change, ''),
+  email_change_token_new = coalesce(email_change_token_new, '')
+where id in ('00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000012',
+             '00000000-0000-4000-8000-000000000021', '00000000-0000-4000-8000-000000000022');
+
 insert into auth.identities (
   provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
 )

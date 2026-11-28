@@ -1,4 +1,6 @@
-:root { color: #162f32; background: #f1f5f1; font: 100%/1.55 system-ui, sans-serif; }
+@import "tailwindcss";
+
+:root { font: 100%/1.55 system-ui, sans-serif; color: #162f32; background: #f1f5f1; }
 * { box-sizing: border-box; }
 body { margin: 0; }
 input, button { font: inherit; }
