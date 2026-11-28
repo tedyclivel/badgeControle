@@ -2,7 +2,6 @@ import Dexie, { type Table } from 'dexie'
 import type {
   DepotLocalAgent,
   EvenementPassageEnAttente,
-  PassageLocal,
   PassageLocalVerifie,
   ResultatValidationLocale,
 } from '../../domaine/scan/types.ts'
@@ -81,7 +80,6 @@ export class BaseLocaleAgent extends Dexie implements DepotLocalAgent {
     return (await this.badgesRevoques.get(identifiantBadge)) !== undefined
   }
 
-  async consommerCodeEtEnregistrerPassage(passage: PassageLocal): Promise<ResultatValidationLocale> {
   async consommerCodeEtEnregistrerPassage(passage: PassageLocalVerifie): Promise<ResultatValidationLocale> {
     return this.transaction(
       'rw',

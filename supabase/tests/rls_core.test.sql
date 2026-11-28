@@ -2,7 +2,6 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 select plan(10);
-select plan(6);
 
 set local role authenticated;
 

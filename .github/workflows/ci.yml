@@ -1,0 +1,79 @@
+name: Passage CI
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend - Quality and Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint -w apps/web
+
+      - name: Unit tests
+        run: npm run test -w apps/web
+
+      - name: Build and type checking
+        run: npm run build -w apps/web
+
+  backend:
+    name: Backend - Deno Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run backend tests
+        run: deno test supabase/functions
+
+  database:
+    name: Database - pgTAP Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start Supabase
+        run: |
+          for attempt in 1 2 3; do
+            npx supabase start -x studio,logflare,vector,imgproxy,realtime,storage-api,edge-runtime && exit 0
+            npx supabase stop || true
+            sleep $((attempt * 15))
+          done
+          exit 1
+
+      - name: Apply migrations
+        run: npx supabase db reset
+
+      - name: Run database tests
+        run: npx supabase test db
+
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop
