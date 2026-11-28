@@ -135,4 +135,34 @@ describe('validerCodeQrHorsLigne', () => {
 
     expect(resultat).toEqual({ accepte: false, motif: 'BADGE_REVOQUE' })
   })
+
+  it('refuse un QR expiré sans l’ajouter à la file locale', async () => {
+    const depot = new DepotMemoire()
+    const { clePublique, signatureBase64 } = await preparerCodeSigne()
+    depot.memoriserCle(passage.identifiantEcole, clePublique)
+
+    const resultat = await validerCodeQrHorsLigne(
+      { donnees, signatureBase64 },
+      passage,
+      depot,
+      new Date('2026-11-27T08:05:00.000Z'),
+    )
+
+    expect(resultat).toEqual({ accepte: false, motif: 'EXPIRE' })
+  })
+
+  it('refuse un QR qui ne correspond pas à l’établissement du passage', async () => {
+    const depot = new DepotMemoire()
+    const { clePublique, signatureBase64 } = await preparerCodeSigne()
+    depot.memoriserCle(passage.identifiantEcole, clePublique)
+
+    const resultat = await validerCodeQrHorsLigne(
+      { donnees: { ...donnees, identifiantEcole: 'autre-ecole' }, signatureBase64 },
+      passage,
+      depot,
+      new Date('2026-11-27T08:01:00.000Z'),
+    )
+
+    expect(resultat).toEqual({ accepte: false, motif: 'ECOLE_INCORRECTE' })
+  })
 })
