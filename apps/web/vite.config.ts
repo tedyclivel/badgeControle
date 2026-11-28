@@ -30,10 +30,23 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,woff2,svg}"],
         navigateFallbackDenylist: [/^\/rest\//, /^\/auth\//, /^\/functions\//],
       },
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
     }),
   ],
   server: {
+    host: true,
     port: 3000,
     strictPort: true,
+    allowedHosts: [".trycloudflare.com", ".ngrok-free.app", ".ngrok-free.dev", ".ngrok.app", ".ngrok.io"],
+    proxy: {
+      "/auth": "http://127.0.0.1:55321",
+      "/rest": "http://127.0.0.1:55321",
+      "/functions": "http://127.0.0.1:55321",
+      "/storage": "http://127.0.0.1:55321",
+      "/realtime": { target: "ws://127.0.0.1:55321", ws: true },
+    },
   },
 });
