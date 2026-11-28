@@ -1,6 +1,6 @@
 # Passage — Conception de la base de données
 
-Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql`, parcours initiaux dans `20261127123000_create_routes_schema.sql` et données fictives dans `supabase/seed.sql` ; les tables métier restantes et les politiques RLS détaillées restent à implémenter et tester. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
+Statut : noyau relationnel implémenté dans la migration `20261127120000_create_core_schema.sql`, parcours initiaux dans `20261127123000_create_routes_schema.sql`, invariants du socle dans `20261127124000_renforcer_integrite_noyau.sql` et structures métier dans `20261127125000_create_business_schema.sql`. Les RPC, déclencheurs métier et politiques RLS détaillées restent dans leurs branches dédiées. Source : Test technique Afric’Éduc, sujet B, sections 2.2, 2.4, 3.2 à 3.6.
 
 ## 1. Choix de conception
 
@@ -69,6 +69,8 @@ La preuve cryptographique, le statut de validation et l’horodatage de récepti
 
 ## 4. Contraintes et invariants
 
+- Une relation `parent_students` ne peut référencer qu’un profil actif de rôle `PARENT`. Les clés étrangères composites empêchent déjà un rattachement entre deux établissements.
+- Les jours d’application d’une fenêtre sont non vides, compris entre 1 et 7 et sans doublon. Deux itinéraires actifs ne peuvent pas se chevaucher pour un même élève.
 - Un seul badge ACTIVE par élève : index unique partiel. Réémission : révocation de l’ancien badge et émission du nouveau dans une même transaction. Revalider le statut à la synchronisation ; l’agent hors ligne ne peut pas connaître une révocation instantanément.
 - Tous les rattachements école/élève/badge/point/appareil doivent être cohérents. Ajouter `UNIQUE (school_id,id)` sur les tables référencées et des FK composites sur les relations concernées. Assurer également la cohérence entre l’élève du badge et l’élève du passage.
 - Synchronisation idempotente : unicité de `(device_id,local_event_id)` ; une retransmission identique renvoie le résultat déjà validé. Si le contenu diffère sous la même clé, refuser le conflit. Unicité de `(device_id,challenge_id)` pour refuser une autre tentative de consommation du même challenge. Les deux règles sont distinctes de l’anomalie métier DOUBLE SCAN (deux véritables scans à moins de 60 secondes).
