@@ -15,6 +15,7 @@ type Espace =
   | { readonly role: 'MANAGER'; readonly chemin: '/responsable'; readonly ecole: string; readonly nom: string }
   | { readonly role: 'AGENT'; readonly chemin: '/agent'; readonly schoolId: string; readonly nom: string }
   | { readonly role: 'PARENT'; readonly chemin: '/parent'; readonly nom: string }
+  | { readonly role: 'PARENT'; readonly chemin: '/parent'; readonly nom: string; readonly enfants: readonly string[] }
 
 function Connexion({ db }: { readonly db: SupabaseClient }) {
   const [erreur, setErreur] = useState('')
@@ -54,23 +55,12 @@ async function chargerEspace(db: SupabaseClient, id: string): Promise<Espace> {
   if (profil.role === 'PARENT') return { role: 'PARENT', chemin: '/parent', nom: String(profil.full_name) }
   throw new Error('Rôle inconnu')
   switch (profil.role) {
-    case 'MANAGER': {
-      return { chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
-    }
-    case 'AGENT': {
-      const { data, error } = await db.from('devices').select('label').eq('agent_id', id)
-        .eq('school_id', profil.school_id).eq('active', true).order('label')
-      if (error) throw error
-      return { role: profil.role, schoolId: profil.school_id, chemin: '/agent', titre: 'Espace agent', nom: profil.full_name,
-        rubrique: 'Mes terminaux actifs', lignes: data.map(d => String(d.label)), vide: 'Aucun terminal actif affecté.' }
-    }
+    case 'MANAGER': return { role: profil.role, chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
+    case 'AGENT': return { role: profil.role, schoolId: String(profil.school_id), chemin: '/agent', nom: String(profil.full_name) } as const
     case 'PARENT': {
-      // Les politiques RLS limitent cette lecture aux élèves liés au parent connecté.
-      const { data, error } = await db.from('students').select('full_name')
-        .eq('school_id', profil.school_id).eq('active', true).order('full_name')
-      if (error) throw error
-      return { role: profil.role, schoolId: profil.school_id, chemin: '/parent', titre: 'Espace parent', nom: profil.full_name,
-        rubrique: 'Mes enfants', lignes: data.map(e => String(e.full_name)), vide: 'Aucun enfant actif rattaché au compte.' }
+      const { data, error: erreurEnfants } = await db.from('students').select('full_name').eq('school_id', profil.school_id).eq('active', true).order('full_name')
+      if (erreurEnfants) throw erreurEnfants
+      return { role: profil.role, chemin: '/parent', nom: String(profil.full_name), enfants: data.map((eleve) => String(eleve.full_name)) } as const
     }
     default: throw new Error('Rôle inconnu')
   }
@@ -78,6 +68,8 @@ async function chargerEspace(db: SupabaseClient, id: string): Promise<Espace> {
 
 function EspaceConnecte({ db, id }: { readonly db: SupabaseClient; readonly id: string }) {
   const [espace, setEspace] = useState<Espace | null>(null)
+function Espace({ db, id }: { readonly db: SupabaseClient; readonly id: string }) {
+  const [espace, setEspace] = useState<Awaited<ReturnType<typeof chargerEspace>> | null>(null)
   const [erreur, setErreur] = useState('')
   const [essai, setEssai] = useState(0)
   const deconnecter = () => void db.auth.signOut({ scope: 'local' })
@@ -102,15 +94,17 @@ function EspaceConnecte({ db, id }: { readonly db: SupabaseClient; readonly id: 
     <Route path="*" element={<Navigate to="/parent" replace />} />
   if (erreur) return <section><p role="alert">{erreur}</p><button onClick={() => { setErreur(''); setEssai(essai + 1) }}>Réessayer</button></section>
   if (!espace) return <p role="status">Chargement du profil…</p>
-  if ('ecole' in espace && typeof espace.ecole === 'string') return <Routes>
-    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom}/></Suspense>} />
+  if (espace.role === 'MANAGER') return <Routes>
+    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom} /></Suspense>} />
     <Route path="*" element={<Navigate to="/responsable" replace />} />
   </Routes>
+  if (espace.role === 'AGENT') return <Routes>
+    <Route path="/agent" element={<EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />} />
+    <Route path="*" element={<Navigate to="/agent" replace />} />
+  </Routes>
   return <Routes>
-    <Route path={espace.chemin} element={espace.role === 'AGENT'
-      ? <EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />
-      : <section><p>{espace.nom}</p><h1>{espace.titre}</h1><h2>{espace.rubrique}</h2>{espace.lignes.length ? <ul>{espace.lignes.map((ligne, i) => <li key={i}>{ligne}</li>)}</ul> : <p>{espace.vide}</p>}<button className="secondaire" onClick={() => void db.auth.signOut({ scope: 'local' })}>Se déconnecter</button></section>} />
-    <Route path="*" element={<Navigate to={espace.chemin} replace />} />
+    <Route path="/parent" element={<section><p>{espace.nom}</p><h1>Espace parent</h1><h2>Mes enfants</h2>{espace.enfants.length ? <ul>{espace.enfants.map((enfant) => <li key={enfant}>{enfant}</li>)}</ul> : <p>Aucun enfant actif rattaché au compte.</p>}<button className="secondaire" onClick={() => void db.auth.signOut({ scope: 'local' })}>Se déconnecter</button></section>} />
+    <Route path="*" element={<Navigate to="/parent" replace />} />
   </Routes>
 }
 
@@ -126,6 +120,7 @@ export default function App() {
     <main>{!client ? <section><h1>Connexion à configurer</h1><p>Renseignez l’URL Supabase et la clé publique dans la configuration web.</p></section>
       : id === undefined ? <p role="status">Ouverture de la session…</p>
         : id ? <EspaceConnecte key={id} db={client} id={id} />
+        : id ? <Espace key={id} db={client} id={id} />
           : <Routes><Route path="/connexion" element={<Connexion db={client} />} /><Route path="*" element={<Navigate to="/connexion" replace />} /></Routes>}</main>
   </BrowserRouter>
 }
