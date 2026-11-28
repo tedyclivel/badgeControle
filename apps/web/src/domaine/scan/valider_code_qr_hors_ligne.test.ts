@@ -59,6 +59,7 @@ const passage: PassageLocal = {
   identifiantAppareil: 'appareil-opaque',
   identifiantPointControle: 'point-opaque',
   heureLocale: '2026-11-27T08:01:00.000Z',
+  decalageHorlogeSecondes: 120,
 }
 
 const donnees: DonneesCodeQr = {
