@@ -12,6 +12,8 @@ export interface PassageLocal {
   readonly identifiantAppareil: string
   readonly identifiantPointControle: string
   readonly heureLocale: string
+  /** Écart estimé entre l'horloge de l'appareil et la référence serveur. */
+  readonly decalageHorlogeSecondes: number | null
 }
 
 export interface PassageLocalVerifie extends PassageLocal {
