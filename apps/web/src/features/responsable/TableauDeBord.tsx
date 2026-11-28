@@ -41,14 +41,21 @@ function ChartCard({
   titre,
   children,
   id,
+  action,
+  className,
 }: {
   titre: string;
   children: ReactNode;
   id?: string;
+  action?: ReactNode;
+  className?: string;
 }) {
   return (
-    <Card id={id}>
-      <CardTitle>{titre}</CardTitle>
+    <Card id={id} className={className}>
+      <div className="rd-card-head">
+        <CardTitle>{titre}</CardTitle>
+        {action}
+      </div>
       {children}
     </Card>
   );
@@ -58,7 +65,7 @@ function DataTable({
   lignes,
 }: {
   titres: string[];
-  lignes: string[][];
+  lignes: ReactNode[][];
 }) {
   return lignes.length ? (
     <div className="rd-scroll">
@@ -101,6 +108,16 @@ const libelles: Record<string, string> = {
   UNRELIABLE_CLOCK: "Horloge incertaine",
 };
 const vert = "#2ECC71";
+function Etiquette({ valeur }: { valeur: string }) {
+  const classe = ["ACCEPTED", "PROCESSED", "RESOLVED"].includes(valeur)
+    ? "ok"
+    : ["REJECTED", "OPEN"].includes(valeur)
+      ? "alerte"
+      : "attente";
+  return (
+    <span className={`rd-tag ${classe}`}>{libelles[valeur] ?? valeur}</span>
+  );
+}
 const tooltip = {
   background: "#222c3a",
   color: "white",
@@ -166,13 +183,32 @@ function StudentsByClassChart({ v }: { v: ReturnType<typeof indicateurs> }) {
   );
 }
 function BadgeDistributionChart({ v }: { v: ReturnType<typeof indicateurs> }) {
+  const [filtre, setFiltre] = useState("TOUS");
+  const actifs = filtre === "INACTIFS" ? 0 : v.actifs;
+  const inactifs = filtre === "ACTIFS" ? 0 : v.totalBadges - v.actifs;
+  const total = actifs + inactifs;
   return (
-    <ChartCard titre="Répartition des badges" id="badges">
-      {v.totalBadges ? (
+    <ChartCard
+      titre="Répartition des badges"
+      id="badges"
+      action={
+        <select
+          className="rd-mini-filter"
+          aria-label="Filtrer les badges"
+          value={filtre}
+          onChange={(e) => setFiltre(e.target.value)}
+        >
+          <option value="TOUS">Tous</option>
+          <option value="ACTIFS">Actifs</option>
+          <option value="INACTIFS">Non actifs</option>
+        </select>
+      }
+    >
+      {total ? (
         <div className="rd-circles">
-          {[v.actifs, v.totalBadges - v.actifs].map((n, i) => (
+          {[actifs, inactifs].map((n, i) => (
             <div key={i}>
-              <b>{Math.round((n * 100) / v.totalBadges)} %</b>
+              <b>{Math.round((n * 100) / total)} %</b>
               <span>
                 {i ? "Non actifs" : "Actifs"} · {n}
               </span>
@@ -186,11 +222,25 @@ function BadgeDistributionChart({ v }: { v: ReturnType<typeof indicateurs> }) {
   );
 }
 function AttendanceRanking({ v }: { v: ReturnType<typeof indicateurs> }) {
+  const [limite, setLimite] = useState(3);
   return (
-    <ChartCard titre="Meilleure assiduité">
+    <ChartCard
+      titre="Meilleure assiduité"
+      action={
+        <select
+          className="rd-mini-filter"
+          aria-label="Nombre d’élèves du classement"
+          value={limite}
+          onChange={(e) => setLimite(Number(e.target.value))}
+        >
+          <option value="3">Top 3</option>
+          <option value="6">Top 6</option>
+        </select>
+      }
+    >
       {v.classement.length ? (
         <ol>
-          {v.classement.map((e, i) => (
+          {v.classement.slice(0, limite).map((e, i) => (
             <li key={i} className="rd-rang">
               <span className="rd-avatar">{e.nom[0]}</span>
               <strong>{e.nom}</strong>
@@ -206,10 +256,32 @@ function AttendanceRanking({ v }: { v: ReturnType<typeof indicateurs> }) {
   );
 }
 function WeeklyAnomaliesChart({ v }: { v: ReturnType<typeof indicateurs> }) {
+  const [filtre, setFiltre] = useState("TOUTES");
+  const semaine = v.semaine.map((jour) => ({
+    ...jour,
+    valeur: v.anomalies.filter(
+      (a) => a.day === jour.date && (filtre === "TOUTES" || a.type === filtre),
+    ).length,
+  }));
   return (
-    <ChartCard titre="Anomalies hebdomadaires">
+    <ChartCard
+      titre="Anomalies hebdomadaires"
+      action={
+        <select
+          className="rd-mini-filter"
+          aria-label="Type d’anomalie"
+          value={filtre}
+          onChange={(e) => setFiltre(e.target.value)}
+        >
+          <option value="TOUTES">Toutes</option>
+          <option value="MISSING">Manquantes</option>
+          <option value="OUTSIDE_WINDOW">Hors fenêtre</option>
+          <option value="DUPLICATE_SCAN">Doubles scans</option>
+        </select>
+      }
+    >
       <ResponsiveContainer width="100%" height={185}>
-        <RadarChart data={v.semaine}>
+        <RadarChart data={semaine}>
           <PolarGrid />
           <PolarAngleAxis dataKey="nom" />
           <Radar
@@ -313,7 +385,11 @@ function Dashboard({ d }: { d: Donnees }) {
         <AttendanceRanking v={v} />
         <WeeklyAnomaliesChart v={v} />
       </div>
-      <ChartCard titre="Passages récents" id="passages">
+      <ChartCard
+        titre="Passages récents"
+        id="passages"
+        className="rd-data-card"
+      >
         <DataTable
           titres={[
             "Élève",
@@ -330,13 +406,17 @@ function Dashboard({ d }: { d: Donnees }) {
               classes.get(e?.class_id ?? "") ?? "—",
               points.get(p.checkpoint_id) ?? "—",
               heure(p.effective_time ?? p.server_received_at),
-              libelles[p.validation_status],
-              libelles[p.sync_status],
+              <Etiquette key="validation" valeur={p.validation_status} />,
+              <Etiquette key="synchronisation" valeur={p.sync_status} />,
             ];
           })}
         />
       </ChartCard>
-      <ChartCard titre="Anomalies récentes" id="anomalies">
+      <ChartCard
+        titre="Anomalies récentes"
+        id="anomalies"
+        className="rd-data-card rd-anomalies-card"
+      >
         <DataTable
           titres={["Élève", "Anomalie", "Détection", "Statut", "Résolution"]}
           lignes={v.anomalies
@@ -345,19 +425,34 @@ function Dashboard({ d }: { d: Donnees }) {
               etudiant.get(a.student_id)?.full_name ?? "—",
               libelles[a.type] ?? a.type,
               heure(a.detected_at),
-              libelles[a.status],
+              <Etiquette key="statut" valeur={a.status} />,
               a.resolved_at ? heure(a.resolved_at) : "—",
             ])}
         />
       </ChartCard>
-      <ChartCard titre="Synthèse journalière" id="syntheses">
+      <ChartCard
+        titre="Synthèse journalière"
+        id="syntheses"
+        className="rd-summary-card"
+      >
         {v.syntheses[0] ? (
           <>
-            <small>
-              {v.syntheses[0].day} · {classes.get(v.syntheses[0].class_id)} ·{" "}
-              {v.syntheses[0].source === "MODEL" ? "Modèle IA" : "Mode dégradé"}
-            </small>
+            <div className="rd-summary-meta">
+              <span>
+                {v.syntheses[0].day} · {classes.get(v.syntheses[0].class_id)}
+              </span>
+              <span
+                className={`rd-source ${v.syntheses[0].source.toLowerCase()}`}
+              >
+                {v.syntheses[0].source === "MODEL"
+                  ? "Modèle IA"
+                  : "Mode dégradé"}
+              </span>
+            </div>
             <p>{v.syntheses[0].text}</p>
+            {v.syntheses[0].fallback_reason && (
+              <small>Motif du repli · {v.syntheses[0].fallback_reason}</small>
+            )}
           </>
         ) : (
           <p>Aucune synthèse enregistrée sur cette période.</p>
@@ -395,12 +490,6 @@ export default function ResponsableLayout({
     ouvrir("");
     chercher("");
   }
-  const initiales = nom
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((s) => s[0])
-    .join("");
   return (
     <div className="rd" id="accueil">
       <nav aria-label="Navigation Responsable">
@@ -451,7 +540,7 @@ export default function ResponsableLayout({
             aria-label="Profil"
             onClick={() => ouvrir(menu === "profil" ? "" : "profil")}
           >
-            <span className="rd-avatar">{initiales}</span>
+            <img className="rd-avatar rd-avatar-photo" src="/avatars/responsable.png" alt={`Profil de ${nom}`} />
             <ChevronDown size={13} />
           </button>
         </div>
@@ -520,7 +609,7 @@ export default function ResponsableLayout({
       </nav>
       <div className="rd-body">
         <div className="rd-greeting">
-          <span className="rd-avatar">{initiales}</span>
+          <img className="rd-avatar rd-avatar-photo rd-avatar-greeting" src="/avatars/responsable.png" alt="" />
           <div>
             <strong>Bonjour, {nom.trim().split(" ")[0]} !</strong>
             <p>Voici un aperçu de l’activité de votre établissement.</p>

@@ -126,4 +126,23 @@ export class BaseLocaleAgent extends Dexie implements DepotLocalAgent {
       },
     )
   }
+
+  async listerPassagesEnAttente(): Promise<readonly EvenementPassageEnAttente[]> {
+    return this.passagesEnAttente.where('etatSynchronisation').equals('EN_ATTENTE').sortBy('creeLe')
+  }
+
+  async confirmerPassagesSynchronises(identifiantsEvenements: readonly string[]): Promise<void> {
+    await this.passagesEnAttente.bulkDelete([...identifiantsEvenements])
+  }
+
+  async marquerPassagesRejetes(rejets: ReadonlyMap<string, string>): Promise<void> {
+    await this.transaction('rw', this.passagesEnAttente, async () => {
+      for (const [identifiantEvenementLocal, motifRejetSynchronisation] of rejets) {
+        await this.passagesEnAttente.update(identifiantEvenementLocal, {
+          etatSynchronisation: 'REJETE',
+          motifRejetSynchronisation,
+        })
+      }
+    })
+  }
 }

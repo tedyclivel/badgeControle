@@ -53,6 +53,27 @@ async function chargerEspace(db: SupabaseClient, id: string): Promise<Espace> {
   if (profil.role === 'AGENT') return { role: 'AGENT', chemin: '/agent', schoolId: String(profil.school_id), nom: String(profil.full_name) }
   if (profil.role === 'PARENT') return { role: 'PARENT', chemin: '/parent', nom: String(profil.full_name) }
   throw new Error('Rôle inconnu')
+  switch (profil.role) {
+    case 'MANAGER': {
+      return { chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
+    }
+    case 'AGENT': {
+      const { data, error } = await db.from('devices').select('label').eq('agent_id', id)
+        .eq('school_id', profil.school_id).eq('active', true).order('label')
+      if (error) throw error
+      return { role: profil.role, schoolId: profil.school_id, chemin: '/agent', titre: 'Espace agent', nom: profil.full_name,
+        rubrique: 'Mes terminaux actifs', lignes: data.map(d => String(d.label)), vide: 'Aucun terminal actif affecté.' }
+    }
+    case 'PARENT': {
+      // Les politiques RLS limitent cette lecture aux élèves liés au parent connecté.
+      const { data, error } = await db.from('students').select('full_name')
+        .eq('school_id', profil.school_id).eq('active', true).order('full_name')
+      if (error) throw error
+      return { role: profil.role, schoolId: profil.school_id, chemin: '/parent', titre: 'Espace parent', nom: profil.full_name,
+        rubrique: 'Mes enfants', lignes: data.map(e => String(e.full_name)), vide: 'Aucun enfant actif rattaché au compte.' }
+    }
+    default: throw new Error('Rôle inconnu')
+  }
 }
 
 function EspaceConnecte({ db, id }: { readonly db: SupabaseClient; readonly id: string }) {
@@ -79,6 +100,17 @@ function EspaceConnecte({ db, id }: { readonly db: SupabaseClient; readonly id: 
   return <Routes>
     <Route path="/parent" element={<Suspense fallback={<p>Chargement…</p>}><Parent db={db} nom={espace.nom} deconnecter={deconnecter} /></Suspense>} />
     <Route path="*" element={<Navigate to="/parent" replace />} />
+  if (erreur) return <section><p role="alert">{erreur}</p><button onClick={() => { setErreur(''); setEssai(essai + 1) }}>Réessayer</button></section>
+  if (!espace) return <p role="status">Chargement du profil…</p>
+  if ('ecole' in espace && typeof espace.ecole === 'string') return <Routes>
+    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom}/></Suspense>} />
+    <Route path="*" element={<Navigate to="/responsable" replace />} />
+  </Routes>
+  return <Routes>
+    <Route path={espace.chemin} element={espace.role === 'AGENT'
+      ? <EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />
+      : <section><p>{espace.nom}</p><h1>{espace.titre}</h1><h2>{espace.rubrique}</h2>{espace.lignes.length ? <ul>{espace.lignes.map((ligne, i) => <li key={i}>{ligne}</li>)}</ul> : <p>{espace.vide}</p>}<button className="secondaire" onClick={() => void db.auth.signOut({ scope: 'local' })}>Se déconnecter</button></section>} />
+    <Route path="*" element={<Navigate to={espace.chemin} replace />} />
   </Routes>
 }
 
