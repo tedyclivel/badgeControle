@@ -34,6 +34,7 @@ import {
 import type { Donnees } from "./depot";
 import { indicateurs } from "./indicateurs";
 import { Card, CardTitle } from "../../components/ui/card";
+import { GenerateurQr } from "./presentation/GenerateurQr";
 import "@fontsource-variable/inter";
 import "./responsable.css";
 
@@ -297,7 +298,7 @@ function WeeklyAnomaliesChart({ v }: { v: ReturnType<typeof indicateurs> }) {
     </ChartCard>
   );
 }
-function Dashboard({ d }: { d: Donnees }) {
+function Dashboard({ d, db }: { d: Donnees; db: SupabaseClient }) {
   const [choix, setChoix] = useState(""),
     [periode, setPeriode] = useState(30);
   const [filtre, setFiltre] = useState({ classe: "", jours: 30 });
@@ -351,6 +352,7 @@ function Dashboard({ d }: { d: Donnees }) {
           <Filter size={15} /> Filtrer
         </button>
       </form>
+      <div className="rd-qr-action"><GenerateurQr db={db} donnees={d} /></div>
       <div className="rd-stats">
         {[
           { titre: "Élèves inscrits", n: v.inscrits, Icon: GraduationCap },
@@ -628,7 +630,7 @@ export default function ResponsableLayout({
             </button>
           </article>
         ) : d ? (
-          <Dashboard d={d} />
+          <Dashboard d={d} db={db} />
         ) : (
           <article role="status" className="rd-card">
             Chargement du tableau de bord…

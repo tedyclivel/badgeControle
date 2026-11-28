@@ -54,7 +54,7 @@ export async function lireDashboard(db: SupabaseClient, ecole: string) {
       z.object({ id: s, full_name: s, class_id: s, active: z.boolean() }),
       "id,full_name,class_id,active",
     ),
-    lire("badges", z.object({ student_id: s, status: s }), "student_id,status"),
+    lire("badges", z.object({ id: s, student_id: s, status: s }), "id,student_id,status"),
     lire(
       "passages",
       z.object({
