@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { EcranAgent } from './features/agent/AgentScreen.tsx'
 import './App.css'
 
 const url = import.meta.env.VITE_SUPABASE_URL
@@ -45,14 +46,14 @@ async function chargerEspace(db: SupabaseClient, id: string) {
       const { count, error } = await db.from('anomalies').select('id', { count: 'exact', head: true })
         .eq('school_id', profil.school_id).eq('status', 'OPEN')
       if (error) throw error
-      return { chemin: '/responsable', titre: 'Espace responsable', nom: profil.full_name,
+      return { role: profil.role, schoolId: profil.school_id, chemin: '/responsable', titre: 'Espace responsable', nom: profil.full_name,
         rubrique: 'Anomalies ouvertes', lignes: [String(count ?? 0)], vide: '' }
     }
     case 'AGENT': {
       const { data, error } = await db.from('devices').select('label').eq('agent_id', id)
         .eq('school_id', profil.school_id).eq('active', true).order('label')
       if (error) throw error
-      return { chemin: '/agent', titre: 'Espace agent', nom: profil.full_name,
+      return { role: profil.role, schoolId: profil.school_id, chemin: '/agent', titre: 'Espace agent', nom: profil.full_name,
         rubrique: 'Mes terminaux actifs', lignes: data.map(d => String(d.label)), vide: 'Aucun terminal actif affecté.' }
     }
     case 'PARENT': {
@@ -60,7 +61,7 @@ async function chargerEspace(db: SupabaseClient, id: string) {
       const { data, error } = await db.from('students').select('full_name')
         .eq('school_id', profil.school_id).eq('active', true).order('full_name')
       if (error) throw error
-      return { chemin: '/parent', titre: 'Espace parent', nom: profil.full_name,
+      return { role: profil.role, schoolId: profil.school_id, chemin: '/parent', titre: 'Espace parent', nom: profil.full_name,
         rubrique: 'Mes enfants', lignes: data.map(e => String(e.full_name)), vide: 'Aucun enfant actif rattaché au compte.' }
     }
     default: throw new Error('Rôle inconnu')
@@ -80,7 +81,9 @@ function Espace({ db, id }: { db: SupabaseClient; id: string }) {
   return <section>
     {erreur && <p role="alert">{erreur}</p>}
     {espace ? <Routes>
-      <Route path={espace.chemin} element={<>
+      <Route path={espace.chemin} element={espace.role === 'AGENT'
+        ? <EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />
+        : <>
         <p>{espace.nom}</p><h1>{espace.titre}</h1><h2>{espace.rubrique}</h2>
         {espace.lignes.length ? <ul>{espace.lignes.map((ligne, i) => <li key={i}>{ligne}</li>)}</ul> : <p>{espace.vide}</p>}
       </>} />

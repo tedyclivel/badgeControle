@@ -7,10 +7,17 @@ h2, label { font-weight: 650; }
 h2, form { margin-top: 1.5rem; }
 form, label { display: grid; gap: .4rem; }
 form { gap: 1.1rem; }
-input, button { padding: .75rem 1rem; border-radius: .4rem; }
-input { width: 100%; border: 1px solid #81958c; }
+input, button, select, textarea { padding: .75rem 1rem; border-radius: .4rem; font: inherit; }
+input, select, textarea { width: 100%; border: 1px solid #81958c; background: #fff; }
+textarea { min-height: 7rem; resize: vertical; }
 button { background: #125b51; color: white; cursor: pointer; }
 button:disabled { opacity: .7; cursor: wait; }
 .secondaire { margin-top: 2rem; background: #edf3ef; color: #184e47; }
 li { padding: .6rem 0; border-bottom: 1px solid #d8e4df; }
 [role=alert] { color: #922e22; }
+[role=status] { color: #175b51; }
+.etat { padding: .5rem .7rem; border-radius: .4rem; font-weight: 650; }
+.en-ligne { background: #def5e7; color: #155f35; }
+.hors-ligne { background: #fff1ce; color: #715100; }
+details { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #cfdbd5; }
+summary { cursor: pointer; font-weight: 650; }
