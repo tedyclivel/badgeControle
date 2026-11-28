@@ -22,7 +22,7 @@ interface CodeQrConsommeLocal {
   readonly consommeLe: string
 }
 
-interface TentativeLocale {
+export interface TentativeLocale {
   readonly id: string
   readonly identifiantCodeQr: string
   readonly identifiantBadge: string
@@ -144,5 +144,9 @@ export class BaseLocaleAgent extends Dexie implements DepotLocalAgent {
         })
       }
     })
+  }
+
+  async listerDernieresTentatives(limite = 8): Promise<readonly TentativeLocale[]> {
+    return this.tentatives.orderBy('tenteLe').reverse().limit(limite).toArray()
   }
 }
