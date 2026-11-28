@@ -1,6 +1,6 @@
 # Stratégie de tests et intégration continue
 
-Statut : configuration initiale et premiers tests proposés ; une exécution Deno en échec a été observée. Les suites complètes ne sont pas encore validées. Source : sujet B, sections 2.1, 2.2, 2.4 et 3.4.
+Statut au 28 novembre 2026 : suites locales et CI validées. Source : sujet B, sections 2.1, 2.2, 2.4 et 3.4.
 
 ## Niveaux de tests
 
@@ -20,7 +20,7 @@ Workflow `.github/workflows/ci.yml`, déclenchement `push`, `pull_request` et ma
 - Backend : Deno 2, `deno test supabase/functions/_shared`.
 - Database : `npm ci`, `npx supabase start`, `npx supabase db reset`, `npx supabase test db`, arrêt même en cas d’échec.
 
-Les images Docker de CI sont téléchargées par le runner GitHub. Les tests ne doivent pas dépendre d’une clé IA réelle ou de données de production. Les versions et lockfiles devront être stabilisés et la configuration réelle vérifiée avant livraison.
+Les images Docker de CI sont téléchargées par le runner GitHub. Les tests ne dépendent d’aucune clé IA réelle ni de données de production.
 
 ## Commandes
 
@@ -34,7 +34,16 @@ npx supabase test db
 
 Les tests SQL nécessitent Supabase démarré. Un test en échec doit faire échouer le job ; ne pas désactiver le contrôle de types ou ignorer une suite pour afficher artificiellement un statut vert.
 
-## Tests initiaux proposés
+## Résultats observés
+
+| Suite | Résultat local observé |
+|---|---|
+| Vitest | 16 tests réussis |
+| Deno | 10 tests réussis |
+| pgTAP | 41 assertions réussies dans 8 fichiers |
+| GitHub Actions | Frontend, Backend Deno et Database pgTAP verts sur le correctif final |
+
+## Couverture fournie
 
 | Fichier | Couverture prévue | État |
 |---|---|---|

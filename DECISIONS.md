@@ -81,3 +81,10 @@ Les décisions ci-dessous distinguent les choix validés du candidat et les hypo
 - **Écarté :** Git Flow complet, commit final unique, déploiement continu non demandé.
 - **Raison :** historique lisible, régression détectée tôt, exécution des tests sur GitHub sans consommer localement les téléchargements Docker de CI.
 - **Compromis :** adapter le nombre de branches et de commits au travail réel ; ne pas sacrifier les fonctions critiques à une procédure trop lourde.
+
+## ADR-011 — QR signé en démonstration et validation serveur
+
+- **Statut :** implémenté pour le MVP.
+- **Retenu :** un QR porte une charge signée ; l’agent vérifie la signature avec une clé publique préparée localement, mémorise l’identifiant déjà consommé dans IndexedDB et remet l’événement à l’Edge Function lors du retour réseau.
+- **Contrôle :** le serveur vérifie de nouveau la signature, l’agent, le terminal, le point, le statut du badge et l’idempotence `(device_id, local_event_id)`.
+- **Limite :** le lecteur caméra et une estimation active du décalage d’horloge restent hors du MVP ; une heure sans référence est marquée `UNRELIABLE` au lieu d’être artificiellement corrigée.
