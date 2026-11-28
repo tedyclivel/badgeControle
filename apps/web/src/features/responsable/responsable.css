@@ -227,6 +227,28 @@ main:has(.rd) {
   font-size: 16px;
   margin: 0 0 18px;
 }
+.rd-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.rd-card-head h2 {
+  margin: 0;
+}
+.rd-mini-filter {
+  border: 1px solid var(--edge);
+  background: #f8fafc;
+  color: var(--muted);
+  padding: 5px 7px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.rd-mini-filter:focus-visible {
+  outline: 2px solid #d5dbe2;
+  outline-offset: 0;
+}
 .rd-card p {
   color: var(--muted);
 }
@@ -265,13 +287,84 @@ main:has(.rd) {
 }
 .rd td,
 .rd th {
-  padding: 10px;
+  padding: 12px 10px;
   border-bottom: 1px solid var(--edge);
   white-space: nowrap;
 }
+.rd tbody tr:last-child td {
+  border-bottom: 0;
+}
+.rd tbody tr:hover {
+  background: #f8fafc;
+}
 .rd th {
+  color: #718096;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+  background: #f8fafc;
+}
+.rd-data-card {
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 5px 18px rgba(31, 45, 61, 0.045);
+}
+.rd-data-card > .rd-card-head {
+  padding: 18px 18px 0;
+}
+.rd-data-card .rd-scroll {
+  border-top: 1px solid var(--edge);
+}
+.rd-anomalies-card {
+  border-left: 3px solid #f59e0b;
+}
+.rd-tag {
+  display: inline-flex;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.rd-tag.ok {
+  background: #dcfce7;
+  color: #167a43;
+}
+.rd-tag.alerte {
+  background: #fee2e2;
+  color: #b42318;
+}
+.rd-tag.attente {
+  background: #fef3c7;
+  color: #9a5b00;
+}
+.rd-summary-card {
+  border-left: 3px solid var(--green);
+  background: linear-gradient(105deg, #fff 65%, #f0fdf4);
+}
+.rd-summary-card > p {
+  max-width: 72ch;
+  font-size: 15px;
+  color: #3f5268;
+}
+.rd-summary-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   color: var(--muted);
   font-size: 12px;
+}
+.rd-source {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.rd-source.model {
+  background: #dcfce7;
+  color: #167a43;
+}
+.rd-source.template {
+  background: #e8eef7;
+  color: #415774;
 }
 .rd svg text {
   font-size: 11px;
@@ -330,6 +423,10 @@ main:has(.rd) {
   .rd-stats article {
     padding: 10px;
     gap: 8px;
+  }
+  .rd-card-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .rd-filtres {
     flex-wrap: wrap;

@@ -130,6 +130,7 @@ export function indicateurs(
     passages,
     anomalies,
     semaine: jours.slice(-7).map((date) => ({
+      date,
       nom: new Intl.DateTimeFormat("fr", {
         weekday: "short",
         timeZone: "UTC",
