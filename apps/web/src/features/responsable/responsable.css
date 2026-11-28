@@ -87,6 +87,8 @@ main:has(.rd) {
   border-radius: 5px;
   color: var(--muted);
   padding-left: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  transition: background 160ms ease, box-shadow 160ms ease;
 }
 .rd-tools input {
   width: 135px;
@@ -97,10 +99,18 @@ main:has(.rd) {
 .rd-tools label:focus-within input {
   width: 240px;
 }
+.rd-tools label:focus-within {
+  background: #f8fafc;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.14);
+}
+.rd-tools input:focus,
 .rd-tools input:focus-visible,
-.rd-filtres select:focus-visible {
-  outline: 2px solid #d5dbe2;
-  outline-offset: 0;
+.rd-filtres select:focus,
+.rd-filtres select:focus-visible,
+.rd-mini-filter:focus,
+.rd-mini-filter:focus-visible {
+  outline: 0;
+  box-shadow: none;
 }
 .rd-avatar {
   width: 30px;
@@ -162,6 +172,12 @@ main:has(.rd) {
   border: 0;
   padding: 8px;
   border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+.rd-filtres select:focus {
+  background: #2b3545;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.22);
 }
 .rd-filtres button {
   background: var(--green);
@@ -238,16 +254,18 @@ main:has(.rd) {
   margin: 0;
 }
 .rd-mini-filter {
-  border: 1px solid var(--edge);
+  border: 0;
   background: #f8fafc;
   color: var(--muted);
   padding: 5px 7px;
   border-radius: 4px;
   font-size: 12px;
+  box-shadow: inset 0 0 0 1px #e8edf2;
+  transition: background 160ms ease, box-shadow 160ms ease;
 }
-.rd-mini-filter:focus-visible {
-  outline: 2px solid #d5dbe2;
-  outline-offset: 0;
+.rd-mini-filter:focus {
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
 }
 .rd-card p {
   color: var(--muted);
