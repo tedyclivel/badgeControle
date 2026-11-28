@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { EcranAgent } from './features/agent/AgentScreen.tsx'
 import './App.css'
+const Responsable = lazy(() => import('./features/responsable/TableauDeBord'))
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const cle = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -43,6 +44,7 @@ async function chargerEspace(db: SupabaseClient, id: string) {
   if (error || !profil) throw new Error('Profil inaccessible')
   switch (profil.role) {
     case 'MANAGER': {
+      return { chemin: '/responsable', ecole: String(profil.school_id), nom: String(profil.full_name) } as const
       const { count, error } = await db.from('anomalies').select('id', { count: 'exact', head: true })
         .eq('school_id', profil.school_id).eq('status', 'OPEN')
       if (error) throw error
@@ -78,8 +80,14 @@ function Espace({ db, id }: { db: SupabaseClient; id: string }) {
       .catch(() => { if (actif) setErreur('Impossible de charger votre espace.') })
     return () => { actif = false }
   }, [db, id, essai])
+  if (espace && 'ecole' in espace && espace.ecole) return <Routes>
+    <Route path="/responsable" element={<Suspense fallback={<p>Chargement…</p>}><Responsable db={db} ecole={espace.ecole} nom={espace.nom}/></Suspense>}/>
+    <Route path="*" element={<Navigate to="/responsable" replace/>}/>
+  </Routes>
   return <section>
     {erreur && <p role="alert">{erreur}</p>}
+    {espace && espace.lignes ? <Routes>
+      <Route path={espace.chemin} element={<>
     {espace ? <Routes>
       <Route path={espace.chemin} element={espace.role === 'AGENT'
         ? <EcranAgent db={db} agent={{ id, full_name: espace.nom, school_id: espace.schoolId }} deconnecter={() => void db.auth.signOut({ scope: 'local' })} />
