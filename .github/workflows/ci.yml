@@ -60,7 +60,13 @@ jobs:
         run: npm ci
 
       - name: Start Supabase
-        run: npx supabase start
+        run: |
+          for attempt in 1 2 3; do
+            npx supabase start && exit 0
+            npx supabase stop || true
+            sleep $((attempt * 15))
+          done
+          exit 1
 
       - name: Apply migrations
         run: npx supabase db reset
