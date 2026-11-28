@@ -1,6 +1,7 @@
 # Stratégie hors ligne et synchronisation
 
 Statut : validation locale des QR signés et persistance IndexedDB implémentées ; synchronisation serveur et écran Agent restent à implémenter et éprouver. Source : sujet B, sections 3.3, 3.4 et 3.6.
+Statut : validation locale des QR signés, persistance IndexedDB et synchronisation serveur idempotente implémentées ; l’écran Agent reste à implémenter et le parcours complet à éprouver. Source : sujet B, sections 3.3, 3.4 et 3.6.
 
 ## État implémenté
 

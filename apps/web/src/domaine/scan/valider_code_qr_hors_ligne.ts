@@ -62,4 +62,5 @@ export async function validerCodeQrHorsLigne(
   }
 
   return depot.consommerCodeEtEnregistrerPassage(passage)
+  return depot.consommerCodeEtEnregistrerPassage({ ...passage, donneesSignees: donnees, signatureBase64: codeQr.signatureBase64 })
 }
