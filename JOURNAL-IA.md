@@ -57,3 +57,13 @@ L’API OpenAI est retenue pour les synthèses du produit, mais son intégration
 ## Production vidéo — à compléter après réalisation
 
 Renseigner l’outil réellement utilisé, les étapes assistées (script, voix off, sous-titres, montage), les corrections humaines et les liens des deux vidéos. Ne pas inscrire d’usage fictif de CapCut, Descript ou d’un autre service.
+
+## Entrée de livraison — 28 novembre 2026
+
+| Sujet | Contribution de l’assistant | Vérification humaine effectuée |
+|---|---|---|
+| Frontend | Structuration des espaces Responsable, Agent et Parent, puis correction des résidus de fusion du routeur | Lint, Vitest et build Vite/PWA exécutés avec succès. |
+| Hors ligne | Proposition de la file Dexie, de l’acquittement sélectif et de l’adaptateur Edge Function | Tests Vitest de synchronisation exécutés ; pgTAP d’idempotence validé. |
+| RLS | Ajout du scénario Parent B aux assertions SQL | 41 assertions pgTAP réussies localement. |
+| CI | Diagnostic des erreurs de parse et des téléchargements Supabase, puis corrections ciblées | Les trois jobs GitHub Actions ont été observés au vert sur le correctif final. |
+| Documentation | Mise à jour du README et rédaction du scénario de démonstration | À relire avant transmission ; aucune vidéo n’est déclarée produite sans lien réel. |

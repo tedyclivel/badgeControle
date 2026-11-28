@@ -4,6 +4,12 @@ Suivi des passages d’élèves par badge, en conditions de réseau dégradé, a
 
 Projet réalisé dans le cadre du test technique Afric’Éduc, sujet B « Passage », pour le poste de stagiaire développeur Full-Stack & IA appliquée.
 
+## État livré — 28 novembre 2026
+
+Le dépôt contient les migrations Supabase, les politiques RLS, les données de démonstration, les Edge Functions, une PWA à trois espaces (Responsable, Agent et Parent), la file de scans IndexedDB et la synchronisation idempotente. La CI valide lint, Vitest, Deno et pgTAP.
+
+Limites assumées : la saisie d’un QR signé est disponible pour la démonstration, mais la capture caméra n’est pas intégrée ; le décalage d’horloge n’est pas encore estimé par la PWA et reste donc signalé comme incertain côté serveur ; aucune diffusion SMS ou e-mail réelle n’est configurée.
+
 ## Objectif
 
 Permettre à un établissement de suivre les passages de ses élèves aux points de contrôle, même lorsque le réseau est indisponible, de détecter des anomalies et de mettre à disposition des parents les informations relatives à leurs enfants. Une synthèse journalière par classe sera produite à partir de statistiques calculées par l’application.
@@ -43,7 +49,7 @@ docs/                 # Conception et documentation
 
 ## Installation et lancement
 
-Les commandes suivantes correspondent à l’environnement retenu. Leur exécution intégrale à partir d’un clone vierge reste à vérifier avant la livraison finale.
+Les commandes suivantes ont été validées avec la pile Supabase locale.
 
 Prérequis : Git, Node.js 24 (version ciblée par la CI), npm, Docker démarré ; Deno 2 pour exécuter les tests backend localement. Supabase CLI est prévu comme dépendance de développement du monorepo.
 
@@ -57,19 +63,19 @@ npx supabase status
 
 Après création des migrations et du seed, `npx supabase db reset` reconstruira la base locale (attention : cette commande efface les données locales existantes).
 
-Configuration frontend prévue dans `apps/web/.env.local`, à adapter au contrat de configuration effectivement implémenté :
+Créer `apps/web/.env.local` à partir de `apps/web/.env.example`, puis remplacer la clé publique par celle affichée par `npx supabase status` :
 
 ```dotenv
-VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_URL=http://127.0.0.1:55321
 VITE_SUPABASE_PUBLISHABLE_KEY=
 ```
 
 Utiliser la clé publique locale fournie par Supabase ; jamais la clé secrète ou `service_role`. Les secrets backend seront fournis hors Git, par l’environnement des Edge Functions. L’IA devra fonctionner sans clé `OPENAI_API_KEY` grâce au mode dégradé.
 
-Dans des terminaux séparés, lorsque les fonctions et la configuration seront prêtes :
+Dans des terminaux séparés :
 
 ```bash
-npx supabase functions serve
+npx supabase functions serve synchroniser_passages
 npm run dev -w apps/web
 ```
 
@@ -100,18 +106,18 @@ npx supabase test db
 
 La dernière commande suppose une instance Supabase locale démarrée. Le workflow GitHub Actions prévu lance les trois suites à chaque push et Pull Request.
 
-État J2 : une exécution de la suite Deno a échoué lors de la résolution de `@types/node`. Le remplacement de l’assertion Node par `jsr:@std/assert@1` a été proposé ; le résultat de la nouvelle exécution reste à confirmer. Aucun statut global « au vert » n’est revendiqué à ce stade. Voir [TESTING.md](docs/TESTING.md).
+Le dernier contrôle local a validé 16 tests Vitest, 10 tests Deno et 41 assertions pgTAP. Voir [TESTING.md](docs/TESTING.md).
 
 ## Sécurité
 
-Les mesures suivantes constituent la stratégie de réalisation, et ne sont pas présentées comme déjà opérationnelles :
+Mesures effectivement présentes dans le MVP :
 
 - Supabase Auth pour le hachage adapté des mots de passe ; longueur minimale de huit caractères, limitation des connexions et erreurs génériques.
 - Sessions à durée limitée, déconnexion effective vérifiée côté serveur et contrôle des rôles sur chaque opération protégée.
 - Cloisonnement par établissement et par relation parent-enfant, avec RLS et autorisations applicatives.
 - Validation serveur des entrées, SQL paramétré ou RPC à paramètres typés ; contraintes PostgreSQL et transactions.
 - Rendu du texte comme texte, sans HTML utilisateur non assaini ; aucune donnée nominative dans les requêtes IA.
-- Badge numérique interactif avec challenge signé, sous réserve de validation du support et de la faisabilité hors ligne.
+- QR signé vérifié localement et de nouveau côté serveur ; la révocation reçue par le terminal est aussi vérifiée hors ligne.
 - Aucun secret réel versionné ; `.env.example` ne contient que des valeurs fictives ou des noms de variables.
 
 Les tests de sécurité, les limites du modèle de menace et les améliorations envisagées sont décrits dans [SECURITY.md](docs/SECURITY.md).
@@ -122,15 +128,12 @@ L’écran de scan doit rester accessible hors réseau après une préparation e
 
 Pour l’IA, les statistiques sont calculées par le code. Sans clé, en cas d’indisponibilité, de plafond atteint ou de sortie invalide après la tentative autorisée, un gabarit déterministe produit une synthèse exacte. Le chemin emprunté doit être enregistré. Voir [OFFLINE-STRATEGY.md](docs/OFFLINE-STRATEGY.md).
 
-## État d’avancement — J2 (25 novembre 2026)
+## État d’avancement — livraison
 
-- Analyse du sujet, périmètre initial du MVP et choix techniques et architecturaux : définis.
-- Dépôt GitHub, stratégie de branches, environnement de développement et structure documentaire : préparés.
-- Intégration continue : première exécution backend observée ; correction proposée, résultat à confirmer.
-- Modèle de données : proposition de conception, non validée par des migrations ou une exécution.
-- À réaliser ou valider : authentification, RLS, migrations/seed, badges, synchronisation réelle, anomalies automatiques, notifications, IA, tests d’intégration, vidéos et lancement local hors Internet.
-
-La documentation reflète une conception et un plan de réalisation, non un produit achevé. Elle sera actualisée selon les fonctionnalités effectivement livrées.
+- Migrations, seed, Auth, RLS, badges/QR, synchronisation, détection d’anomalies, outbox simulée et repli de synthèse sont implémentés.
+- Les espaces Responsable, Agent et Parent sont disponibles ; le tableau Responsable est relié aux lectures RLS.
+- CI et suites locales sont vertes sur le commit livré.
+- Restent hors périmètre de ce MVP : caméra native, fournisseur réel de notification, estimation PWA du décalage d’horloge et vidéo produite sans outil de capture/montage externe.
 
 ## Documentation
 
