@@ -187,3 +187,109 @@ from public.anomalies anomaly
 join public.parent_students link on link.student_id = anomaly.student_id
 where anomaly.dedup_key like 'demo-%'
 on conflict (anomaly_id, parent_id) do nothing;
+
+-- Jeu de données complet pour la démonstration des classes : un groupe par
+-- niveau, dix élèves par groupe, chacun doté d'un badge, d'un QR et d'un
+-- passage accepté. Les scénarios Alpha à Echo ci-dessus restent inchangés.
+insert into public.classes (id, school_id, name)
+values
+  ('00000000-0000-4000-8000-000000000101', '00000000-0000-4000-8000-000000000001', '6e A'),
+  ('00000000-0000-4000-8000-000000000102', '00000000-0000-4000-8000-000000000001', '5e A'),
+  ('00000000-0000-4000-8000-000000000103', '00000000-0000-4000-8000-000000000001', '4e A'),
+  ('00000000-0000-4000-8000-000000000104', '00000000-0000-4000-8000-000000000001', '3e A'),
+  ('00000000-0000-4000-8000-000000000105', '00000000-0000-4000-8000-000000000001', '2nde A'),
+  ('00000000-0000-4000-8000-000000000106', '00000000-0000-4000-8000-000000000001', '1re A'),
+  ('00000000-0000-4000-8000-000000000107', '00000000-0000-4000-8000-000000000001', 'Tle A')
+on conflict (id) do update set name = excluded.name, school_id = excluded.school_id;
+
+with niveaux (rang, classe_id, libelle) as (
+  values
+    (1, '00000000-0000-4000-8000-000000000101'::uuid, '6e A'),
+    (2, '00000000-0000-4000-8000-000000000102'::uuid, '5e A'),
+    (3, '00000000-0000-4000-8000-000000000103'::uuid, '4e A'),
+    (4, '00000000-0000-4000-8000-000000000104'::uuid, '3e A'),
+    (5, '00000000-0000-4000-8000-000000000105'::uuid, '2nde A'),
+    (6, '00000000-0000-4000-8000-000000000106'::uuid, '1re A'),
+    (7, '00000000-0000-4000-8000-000000000107'::uuid, 'Tle A')
+)
+insert into public.students (id, school_id, class_id, full_name)
+select
+  ('00000000-0000-4000-8000-' || lpad((1000 + (rang - 1) * 10 + numero)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000001', classe_id,
+  'Élève démo ' || libelle || ' ' || lpad(numero::text, 2, '0')
+from niveaux cross join generate_series(1, 10) as numero
+on conflict (id) do update set class_id = excluded.class_id, full_name = excluded.full_name, active = true;
+
+with eleves as (
+  select id, row_number() over (order by id) as rang
+  from public.students
+  where full_name like 'Élève démo %'
+)
+insert into public.itineraries (id, school_id, student_id, valid_from, active)
+select
+  ('00000000-0000-4000-8000-' || lpad((2000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000001', id, '2026-11-01', true
+from eleves
+on conflict (id) do update set student_id = excluded.student_id, active = true;
+
+with eleves as (
+  select id, row_number() over (order by id) as rang
+  from public.students
+  where full_name like 'Élève démo %'
+)
+insert into public.time_windows (id, school_id, itinerary_id, checkpoint_id, position, starts_at, ends_at, weekdays)
+select
+  ('00000000-0000-4000-8000-' || lpad((3000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000001',
+  ('00000000-0000-4000-8000-' || lpad((2000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000201', 1, time '07:00', time '07:45', array[1, 2, 3, 4, 5]::smallint[]
+from eleves
+on conflict (itinerary_id, position) do update set checkpoint_id = excluded.checkpoint_id, starts_at = excluded.starts_at, ends_at = excluded.ends_at, weekdays = excluded.weekdays;
+
+with eleves as (
+  select id, row_number() over (order by id) as rang
+  from public.students
+  where full_name like 'Élève démo %'
+)
+insert into public.badges (id, school_id, student_id, public_key, key_fingerprint, status)
+select
+  ('00000000-0000-4000-8000-' || lpad((4000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000001', id,
+  jsonb_build_object('kty', 'OKP', 'crv', 'Ed25519', 'x', 'demo-eleve-' || rang),
+  lpad(to_hex(4000 + rang), 64, '0'), 'ACTIVE'
+from eleves
+on conflict (id) do update set student_id = excluded.student_id, public_key = excluded.public_key, key_fingerprint = excluded.key_fingerprint, status = 'ACTIVE';
+
+with eleves as (
+  select id, row_number() over (order by id) as rang
+  from public.students
+  where full_name like 'Élève démo %'
+)
+insert into public.qr_codes (id, school_id, badge_id, sequence_number, signed_payload, signature_base64, valid_from, valid_until, status, consumed_at, consumer_device_id, consumer_checkpoint_id)
+select
+  ('00000000-0000-4000-8000-' || lpad((5000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000001',
+  ('00000000-0000-4000-8000-' || lpad((4000 + rang)::text, 12, '0'))::uuid,
+  1, jsonb_build_object('scenario', 'presence-classe', 'eleve', id), repeat('q', 32),
+  '2026-11-27 07:00+01', '2026-11-27 07:05+01', 'CONSUMED', '2026-11-27 07:02+01',
+  '00000000-0000-4000-8000-000000000501', '00000000-0000-4000-8000-000000000201'
+from eleves
+on conflict (id) do update set badge_id = excluded.badge_id, signed_payload = excluded.signed_payload, status = excluded.status, consumed_at = excluded.consumed_at;
+
+with eleves as (
+  select id, row_number() over (order by id) as rang
+  from public.students
+  where full_name like 'Élève démo %'
+)
+insert into public.passages (id, school_id, student_id, badge_id, qr_code_id, checkpoint_id, device_id, agent_id, local_event_id, challenge_id, local_time, effective_time, clock_status, validation_status, sync_status, payload_hash)
+select
+  ('00000000-0000-4000-8000-' || lpad((6000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000001', id,
+  ('00000000-0000-4000-8000-' || lpad((4000 + rang)::text, 12, '0'))::uuid,
+  ('00000000-0000-4000-8000-' || lpad((5000 + rang)::text, 12, '0'))::uuid,
+  '00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000501', '00000000-0000-4000-8000-000000000012',
+  ('00000000-0000-4000-8000-' || lpad((7000 + rang)::text, 12, '0'))::uuid,
+  ('00000000-0000-4000-8000-' || lpad((8000 + rang)::text, 12, '0'))::uuid,
+  '2026-11-27 07:02+01', '2026-11-27 07:02+01', 'TRUSTED', 'ACCEPTED', 'PROCESSED', lpad(to_hex(6000 + rang), 64, '0')
+from eleves
+on conflict (id) do update set student_id = excluded.student_id, badge_id = excluded.badge_id, qr_code_id = excluded.qr_code_id, validation_status = excluded.validation_status, effective_time = excluded.effective_time;

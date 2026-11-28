@@ -26,7 +26,7 @@ select is((select count(*) from public.checkpoints), 2::bigint, 'L agent lit les
 select is((select count(*) from public.anomalies), 0::bigint, 'L agent ne lit aucune anomalie');
 
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000011', true);
-select is((select count(*) from public.students), 5::bigint, 'Le responsable lit les élèves de son établissement');
+select is((select count(*) from public.students), 75::bigint, 'Le responsable lit les élèves de son établissement');
 
 select * from finish();
 rollback;
