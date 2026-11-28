@@ -1,10 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
-
-async function sha256(value: string): Promise<string> {
-  const bytes = new TextEncoder().encode(value)
-  const digest = await crypto.subtle.digest('SHA-256', bytes)
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
-}
+import { empreinteSynthese, texteRepli } from './regles.ts'
 
 Deno.serve(async (request) => {
   const url = Deno.env.get('SUPABASE_URL')
@@ -18,7 +13,7 @@ Deno.serve(async (request) => {
   const { data: user } = await db.auth.getUser(token)
   const { data: profile } = user.user ? await db.from('profiles').select('school_id,role,active').eq('id', user.user.id).maybeSingle() : { data: null }
   if (!profile || !profile.active || profile.role !== 'MANAGER' || profile.school_id !== body.schoolId) return Response.json({ erreur: 'Accès refusé' }, { status: 403 })
-  const requestHash = await sha256(JSON.stringify({ schoolId: body.schoolId, classId: body.classId, day: body.day, version: 1 }))
+  const requestHash = await empreinteSynthese({ schoolId: body.schoolId, classId: body.classId, day: body.day, version: 1 })
   const { data: cached } = await db.from('daily_summaries').select('facts,text,source,fallback_reason').eq('school_id', body.schoolId).eq('request_hash', requestHash).maybeSingle()
   if (cached) return Response.json({ ...cached, cached: true })
   const month = `${body.day.slice(0, 7)}-01`
@@ -27,7 +22,7 @@ Deno.serve(async (request) => {
   const { count: passages } = await db.from('passages').select('*', { count: 'exact', head: true }).eq('school_id', body.schoolId).eq('validation_status', 'ACCEPTED').gte('effective_time', `${body.day}T00:00:00Z`).lt('effective_time', `${body.day}T23:59:59Z`)
   const { count: anomalies } = await db.from('anomalies').select('*', { count: 'exact', head: true }).eq('school_id', body.schoolId).eq('day', body.day)
   const facts = { acceptedPassages: passages ?? 0, anomalies: anomalies ?? 0 }
-  const text = `${facts.acceptedPassages} passage(s) validé(s) et ${facts.anomalies} anomalie(s) pour la journée.`
+  const text = texteRepli(facts)
   const { data: summary, error } = await db.from('daily_summaries').insert({ school_id: body.schoolId, class_id: body.classId, day: body.day, facts, text, source: 'TEMPLATE', fallback_reason: 'Aucune clé IA configurée', request_hash: requestHash }).select('facts,text,source,fallback_reason').single()
   if (error || !summary) return Response.json({ erreur: 'Impossible d’enregistrer la synthèse' }, { status: 500 })
   await db.from('ai_call_logs').insert({ school_id: body.schoolId, request_hash: requestHash, attempt: 1, model: 'template', input_tokens: 0, output_tokens: 0, estimated_cost: 0, status: 'FALLBACK_NO_API_KEY' })
