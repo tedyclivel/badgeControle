@@ -24,7 +24,9 @@ export interface PassageLocalVerifie extends PassageLocal {
 export interface EvenementPassageEnAttente extends PassageLocalVerifie {
   readonly identifiantEvenementLocal: string;
   readonly creeLe: string;
-  readonly etatSynchronisation: 'EN_ATTENTE';
+  readonly etatSynchronisation: 'EN_ATTENTE' | 'REJETE';
+  /** Présent uniquement lorsqu'un refus métier a été confirmé par le serveur. */
+  readonly motifRejetSynchronisation?: string;
 }
 
 export type MotifRefusLocal =
