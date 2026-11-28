@@ -1,6 +1,12 @@
 # Stratégie hors ligne et synchronisation
 
-Statut : conception initiale à implémenter et éprouver. Source : sujet B, sections 3.3, 3.4 et 3.6.
+Statut : validation locale des QR signés, persistance IndexedDB et synchronisation serveur idempotente implémentées ; l’écran Agent reste à implémenter et le parcours complet à éprouver. Source : sujet B, sections 3.3, 3.4 et 3.6.
+
+## État implémenté
+
+Le cas d’utilisation Agent vérifie hors ligne la signature ECDSA, l’établissement, la période de validité et les révocations connues. `BaseLocaleAgent`, fondée sur IndexedDB via Dexie, conserve les clés publiques, les révocations, les QR consommés, les passages en attente, les tentatives et les anomalies locales.
+
+La consommation réussie est atomique : le QR consommé, le passage en attente et la tentative sont écrits dans une seule transaction Dexie. Une réutilisation est refusée et crée une tentative ainsi qu’une anomalie locale ; aucun événement en attente n’est supprimé.
 
 ## 1. Périmètre
 

@@ -87,6 +87,14 @@ set school_id = excluded.school_id,
     type = excluded.type,
     active = true;
 
+insert into public.appareils (id, ecole_id, agent_id, libelle)
+values ('00000000-0000-4000-8000-000000000221', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000012', 'Terminal portail principal')
+on conflict (id) do update
+set ecole_id = excluded.ecole_id,
+    agent_id = excluded.agent_id,
+    libelle = excluded.libelle,
+    actif = true;
+
 insert into public.itineraries (id, school_id, student_id, valid_from, active)
 values
   ('00000000-0000-4000-8000-000000000301', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000111', '2026-11-01', true),
@@ -178,3 +186,9 @@ from public.anomalies anomaly
 join public.parent_students link on link.student_id = anomaly.student_id
 where anomaly.dedup_key like 'demo-%'
 on conflict (anomaly_id, parent_id) do nothing;
+insert into public.exceptions_calendrier (id, ecole_id, eleve_id, jour, type, motif)
+values ('00000000-0000-4000-8000-000000000451', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000115', '2026-11-28', 'ABSENCE_JUSTIFIEE', 'Absence de démonstration')
+on conflict (id) do update
+set jour = excluded.jour,
+    type = excluded.type,
+    motif = excluded.motif;
