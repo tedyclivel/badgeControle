@@ -517,3 +517,35 @@ main:has(.rd) {
 .rd .recharts-tooltip-label {
   color: inherit;
 }
+/* Défilement sobre, lisible et cohérent avec le tableau de bord. */
+.rd,
+.rd-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: #718096 #eef2f6;
+}
+.rd::-webkit-scrollbar,
+.rd-scroll::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.rd::-webkit-scrollbar-track,
+.rd-scroll::-webkit-scrollbar-track {
+  background: #eef2f6;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(100, 116, 139, .08);
+}
+.rd::-webkit-scrollbar-thumb,
+.rd-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a8b4c2, #718096);
+  border: 3px solid #eef2f6;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .18);
+}
+.rd::-webkit-scrollbar-thumb:hover,
+.rd-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #718096, #475569);
+}
+.rd::-webkit-scrollbar-corner,
+.rd-scroll::-webkit-scrollbar-corner {
+  background: #eef2f6;
+}
