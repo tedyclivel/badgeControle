@@ -104,7 +104,7 @@ export function GenerateurQr({ db, donnees }: { readonly db: SupabaseClient; rea
         </button>
         {erreur && <p className="rd-qr-error" role="alert">{erreur}</p>}
         {code && badge && <div className="rd-qr-result">
-          <div className="rd-qr-image"><QRCodeSVG id={`qr-${code.id}`} value={contenu} size={224} level="M" includeMargin /></div>
+          <div className="rd-qr-image"><QRCodeSVG id={`qr-${code.id}`} value={contenu} size={320} level="L" includeMargin /></div>
           <div><strong>{badge.eleve}</strong><span>{badge.classe}</span><p>Valide jusqu’à <b>{formatHeure(code.valable_jusqu_a)}</b></p><small>Le QR est signé et à usage unique. Présentez-le immédiatement au terminal Agent.</small>
             <button type="button" className="rd-qr-download" onClick={() => telechargerImageQr(`qr-${code.id}`, `passage-qr-${code.id}`)}><Download size={15} /> Télécharger l’image QR</button>
             <button type="button" className="rd-qr-download" onClick={() => telechargerQr(contenu, `passage-qr-${code.id}`)}><Download size={15} /> Télécharger le contenu QR</button>
