@@ -14,6 +14,7 @@ interface EvenementSynchronisation {
   readonly identifiantAppareil: string;
   readonly identifiantPointControle: string;
   readonly heureLocale: string;
+  readonly decalageHorlogeSecondes?: number;
   readonly donneesSignees: DonneesCodeQr;
   readonly signatureBase64: string;
 }
@@ -96,6 +97,15 @@ Deno.serve(async (requete) => {
       }
 
       const { data: codeEnregistre, error: erreurCode } = await clientServeur
+        .from('qr_codes')
+        .select('id, school_id, badge_id, signed_payload, signature_base64')
+        .eq('id', evenement.identifiantCodeQr)
+        .maybeSingle();
+      if (erreurCode || !codeEnregistre
+        || codeEnregistre.school_id !== profil.school_id
+        || codeEnregistre.badge_id !== evenement.identifiantBadge
+        || codeEnregistre.signature_base64 !== evenement.signatureBase64
+        || JSON.stringify(codeEnregistre.signed_payload) !== JSON.stringify(evenement.donneesSignees)) {
         .from('codes_qr_dynamiques')
         .select('id, ecole_id, badge_id, donnees_signees, signature_base64')
         .eq('id', evenement.identifiantCodeQr)
@@ -110,6 +120,13 @@ Deno.serve(async (requete) => {
       }
 
       const { data: resultat, error: erreurSynchronisation } = await clientServeur.rpc('synchroniser_passage_serveur', {
+        p_local_event_id: evenement.identifiantEvenementLocal,
+        p_qr_code_id: evenement.identifiantCodeQr,
+        p_device_id: evenement.identifiantAppareil,
+        p_checkpoint_id: evenement.identifiantPointControle,
+        p_agent_id: donneesUtilisateur.user.id,
+        p_local_time: evenement.heureLocale,
+        p_clock_offset_seconds: evenement.decalageHorlogeSecondes ?? null,
         p_identifiant_evenement_local: evenement.identifiantEvenementLocal,
         p_identifiant_code_qr: evenement.identifiantCodeQr,
         p_identifiant_appareil: evenement.identifiantAppareil,
